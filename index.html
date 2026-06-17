@@ -1,0 +1,2223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;450;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6EDE7;
+    --surface:#FBF5F1;
+    --surface-2:#F1E5DD;
+    --ink:#2A2521;
+    --ink-soft:#6E635B;
+    --ink-faint:#A99C92;
+    --line:#E7D9D0;
+    --line-soft:#EFE4DC;
+    --accent:#BF513B;
+    --accent-soft:#D98C76;
+    --gold:#B0823A;
+    --good:#7C8A63;
+    --serif:'Fraunces',Georgia,'Times New Roman',serif;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{display:flex;min-height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:248px;flex-shrink:0;
+    border-right:1px solid var(--line);
+    padding:22px 18px;
+    display:flex;flex-direction:column;gap:18px;
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .brand{padding:0 4px}
+  .brand h1{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:.01em}
+  .brand .sub{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-top:2px}
+
+  /* character card */
+  .char{
+    background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px;display:flex;flex-direction:column;gap:11px;
+  }
+  .char-top{display:flex;align-items:center;gap:11px}
+  .avatar{
+    width:42px;height:42px;border-radius:11px;flex-shrink:0;
+    background:var(--surface-2);border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;
+    transition:transform .15s;
+  }
+  .avatar:hover{transform:scale(1.05)}
+  .char-id{min-width:0;flex:1}
+  .char-name{font-family:var(--serif);font-size:15.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:text}
+  .char-lvl{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-top:1px}
+  .xpwrap{display:flex;flex-direction:column;gap:4px}
+  .xpbar{height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .xpfill{height:100%;background:var(--accent);border-radius:99px;transition:width .45s cubic-bezier(.2,.7,.2,1)}
+  .xpmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.04em}
+  .coins{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:500}
+  .hpbar{height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .hpfill{height:100%;background:#BC4A57;border-radius:99px;transition:width .45s cubic-bezier(.2,.7,.2,1)}
+  .hpmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.04em}
+  /* boss cards */
+  .boss-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+  .boss-card.defeated{opacity:.6}
+  .boss-top{display:flex;align-items:flex-start;gap:11px;margin-bottom:11px}
+  .boss-emoji{width:40px;height:40px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+  .boss-name{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15}
+  .boss-habit{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .boss-hpwrap{margin:12px 0}
+  .boss-hp{height:9px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .boss-hpfill{height:100%;background:linear-gradient(90deg,#5A4A42,#7A6457);border-radius:99px;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .boss-hpmeta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:6px;letter-spacing:.04em}
+  .boss-actions{display:flex;gap:9px;margin-top:13px}
+  .btn-resist{flex:1;border:1px solid var(--good);background:rgba(124,138,99,.1);color:var(--good);border-radius:9px;padding:10px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:.12s}
+  .btn-resist:hover{background:var(--good);color:#fff}
+  .btn-slip{border:1px solid var(--line);background:none;color:var(--ink-soft);border-radius:9px;padding:10px 14px;font-family:var(--sans);font-size:13px;cursor:pointer;transition:.12s}
+  .btn-slip:hover{border-color:#BC4A57;color:#BC4A57}
+  .boss-acted{display:flex;align-items:center;justify-content:space-between;margin-top:13px;gap:10px;font-size:13px}
+  .boss-acted .undo{border:none;background:none;color:var(--ink-faint);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .boss-acted .undo:hover{color:var(--accent)}
+  .trophy{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+  /* digests */
+  .dg-add-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+  .dg-month{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;font-family:var(--mono);font-size:12px;color:var(--ink);outline:none}
+  .dg-month:focus{border-color:var(--accent)}
+  .dg-addbtn{margin:0}
+  .dg-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+  .dg-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:none;cursor:pointer;padding:18px 24px;text-align:left;font-family:var(--sans)}
+  .dg-title{font-family:var(--serif);font-size:24px;font-weight:500;letter-spacing:-.01em;color:var(--ink)}
+  .dg-chev{font-size:13px;color:var(--ink-faint)}
+  .dg-inner{padding:0 24px 24px}
+  .dg-inner.hidden{display:none}
+  .dg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px 24px}
+  .dg-block{min-width:0}
+  .dg-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px}
+  .dg-edit{font-size:13.5px;line-height:1.55;color:var(--ink);outline:none;min-height:22px;white-space:pre-wrap;border-radius:5px}
+  .dg-edit:empty:before{content:attr(data-ph);color:var(--ink-faint)}
+  .dg-edit:focus{box-shadow:0 0 0 2px var(--surface-2)}
+  .dg-del{display:block;margin-top:18px;border:none;background:none;color:var(--ink-faint);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .dg-del:hover{color:var(--accent)}
+  .chart-seg{display:inline-flex;gap:5px}
+  .chart-seg button{flex:0 0 auto;padding:4px 11px;font-size:11px;font-family:var(--mono);letter-spacing:.04em}
+  .rc-scan{display:flex;gap:9px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
+  .rc-scanbtn{margin:0}
+  .rc-blank{margin:0}
+  .rc-filter{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:16px}
+  .fridge-match{padding:9px 0;border-top:1px solid var(--line-soft);cursor:pointer}
+  .fridge-match:hover strong{color:var(--accent)}
+  .fridge-suggest{white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:12px}
+  .mb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-top:4px}
+  .mb-tile{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;border:1px solid var(--line)}
+  .mb-tile img{width:100%;height:100%;object-fit:cover;display:block}
+  .mb-tile .mb-del{position:absolute;top:5px;right:5px;border:none;background:rgba(42,37,33,.62);color:#fff;border-radius:6px;width:22px;height:22px;cursor:pointer;font-size:11px;opacity:0;transition:.12s}
+  .mb-tile:hover .mb-del{opacity:1}
+  .mb-add{aspect-ratio:1;border:1px dashed var(--line);background:none;border-radius:9px;color:var(--ink-faint);font-family:var(--mono);font-size:11px;letter-spacing:.04em;cursor:pointer;transition:.12s}
+  .mb-add:hover{border-color:var(--accent);color:var(--accent)}
+  .coins .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px rgba(176,130,58,.18)}
+
+  /* nav */
+  nav{display:flex;flex-direction:column;gap:1px}
+  .nav-btn{
+    display:flex;align-items:center;gap:10px;
+    padding:7px 9px;border-radius:8px;border:none;background:none;
+    font-family:var(--sans);font-size:13.5px;color:var(--ink-soft);
+    cursor:pointer;text-align:left;width:100%;transition:background .12s,color .12s;
+  }
+  .nav-btn:hover{background:var(--surface)}
+  .nav-btn.active{background:var(--surface);color:var(--ink);font-weight:500}
+  .nav-btn .ico{width:16px;text-align:center;font-size:14px;opacity:.85}
+  .nav-sep{height:1px;background:var(--line-soft);margin:7px 4px}
+
+  .search{
+    display:flex;align-items:center;gap:8px;background:var(--surface);
+    border:1px solid var(--line);border-radius:8px;padding:7px 10px;
+  }
+  .search input{border:none;background:none;outline:none;font-family:var(--sans);font-size:13px;color:var(--ink);width:100%}
+  .search input::placeholder{color:var(--ink-faint)}
+
+  .capture-btn{
+    margin-top:auto;display:flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--ink);color:var(--bg);border:none;border-radius:9px;
+    padding:10px;font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;
+    transition:opacity .15s;
+  }
+  .capture-btn:hover{opacity:.9}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;padding:34px 46px 80px;max-width:1180px}
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint)}
+  .page-head{margin-bottom:30px}
+  .page-head .eyebrow{margin-bottom:7px}
+  .page-title{font-family:var(--serif);font-size:40px;font-weight:500;line-height:1.05;letter-spacing:-.01em}
+  .page-title.sm{font-size:30px}
+
+  .cols{display:grid;grid-template-columns:1fr 340px;gap:46px;align-items:start}
+  @media(max-width:1080px){.cols{grid-template-columns:1fr}}
+  .colR > * + *{margin-top:20px}
+  .colR > .section{margin-bottom:0}
+
+  .section{margin-bottom:30px}
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;padding-bottom:7px;border-bottom:1px solid var(--line-soft)}
+  .section-head .right{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-faint)}
+
+  /* rows */
+  .row{display:flex;align-items:flex-start;gap:11px;padding:9px 0}
+  .row + .row{border-top:1px solid var(--line-soft)}
+  .check{
+    width:17px;height:17px;border:1.5px solid var(--ink-faint);border-radius:5px;flex-shrink:0;margin-top:1px;
+    cursor:pointer;background:none;display:flex;align-items:center;justify-content:center;transition:.12s;
+  }
+  .check:hover{border-color:var(--accent)}
+  .check.done{background:var(--ink);border-color:var(--ink)}
+  .check.done::after{content:"✓";color:var(--bg);font-size:11px;line-height:1}
+  .row-body{flex:1;min-width:0}
+  .row-title{font-size:14px;color:var(--ink)}
+  .row-title.done{color:var(--ink-faint);text-decoration:line-through}
+  .row-meta{display:flex;align-items:center;gap:9px;margin-top:3px;flex-wrap:wrap}
+  .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);background:var(--surface-2);padding:2px 7px;border-radius:5px}
+  .tag.skill{color:var(--good);background:rgba(124,138,99,.12)}
+  .streak{font-family:var(--mono);font-size:10px;color:var(--accent)}
+  .due{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);font-weight:500}
+  .nextdue{font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--ink-faint)}
+  .x-del{margin-left:auto;border:none;background:none;color:var(--ink-faint);cursor:pointer;font-size:14px;opacity:0;transition:.12s;padding:0 4px}
+  .row:hover .x-del,.qcard:hover .x-del,.lib-item:hover .x-del{opacity:1}
+  .libtitle{font-size:14px;color:var(--ink);outline:none;cursor:text;border-radius:4px}
+  .libtitle.done{color:var(--ink-faint)}
+  .libtitle:focus{box-shadow:0 0 0 2px var(--surface-2)}
+  .lib-act{border:1px solid var(--line);background:none;color:var(--ink-soft);border-radius:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 7px;cursor:pointer;flex-shrink:0;white-space:nowrap;transition:.12s}
+  .lib-act:hover{border-color:var(--accent);color:var(--accent)}
+  .libdate{display:flex;align-items:center;gap:6px;margin-top:3px}
+  .libdate span{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--ink-faint)}
+  .libdate input{font-family:var(--mono);font-size:9.5px;color:var(--ink-soft);border:1px solid transparent;background:none;border-radius:5px;padding:1px 3px;cursor:pointer}
+  .libdate input:hover{border-color:var(--line)}
+  .libdate input:focus{outline:none;border-color:var(--accent)}
+  .x-del:hover{color:var(--accent)}
+
+  .group-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:18px 0 4px}
+  .group-label:first-child{margin-top:0}
+
+  /* cards / side panel */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .panel + .panel{margin-top:18px}
+  .panel-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px}
+
+  /* skills */
+  .skill-row{display:flex;flex-direction:column;gap:5px;padding:8px 0}
+  .skill-row + .skill-row{border-top:1px solid var(--line-soft)}
+  .skill-head{display:flex;justify-content:space-between;align-items:baseline}
+  .skill-name{font-size:13px;font-weight:450}
+  .skill-lvl{font-family:var(--mono);font-size:10px;color:var(--ink-faint)}
+  .skill-bar{height:4px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .skill-fill{height:100%;background:var(--good);border-radius:99px;transition:width .45s}
+
+  /* quests */
+  .qcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px;margin-bottom:14px}
+  .qcard-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:9px}
+  .qname{font-family:var(--serif);font-size:17px;font-weight:500;flex:1;cursor:text;outline:none}
+  .qprog-wrap{margin:11px 0 13px}
+  .qprog{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+  .qprog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+  .qprog-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);margin-top:5px;letter-spacing:.04em}
+  .qtodos{display:flex;flex-direction:column;gap:1px}
+  .qtodo{display:flex;align-items:center;gap:9px;padding:6px 0}
+  .qtodo input.txt{border:none;background:none;outline:none;font-family:var(--sans);font-size:13.5px;color:var(--ink);flex:1}
+  .qtodo input.txt.done{color:var(--ink-faint);text-decoration:line-through}
+  .skillpick{border:1px solid var(--line);background:var(--surface-2);color:var(--good);border-radius:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 4px;outline:none;cursor:pointer;flex-shrink:0}
+  .skillpick:focus{border-color:var(--accent)}
+  .skillwrap{display:inline-flex;align-items:center;gap:4px;flex-shrink:0}
+  .skillq{border:1px solid var(--line);background:var(--surface);color:var(--ink-faint);border-radius:50%;width:16px;height:16px;font-size:9px;line-height:1;cursor:pointer;padding:0;flex-shrink:0}
+  .skillq:hover{border-color:var(--accent);color:var(--accent)}
+  /* skills tab */
+  .skl-head{display:flex;align-items:baseline;justify-content:space-between}
+  .skl-name{font-family:var(--serif);font-size:19px;font-weight:500}
+  .skl-area{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-top:1px solid var(--line-soft)}
+  .skl-area-name{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--ink);font-weight:500;min-width:120px;flex-shrink:0;outline:none;border-radius:4px}
+  .skl-area-desc{font-size:13px;color:var(--ink-soft);flex:1;outline:none;border-radius:4px;min-height:18px}
+  .skl-area-desc:empty:before{content:attr(data-ph);color:var(--ink-faint)}
+  .skl-area-name:focus,.skl-area-desc:focus{box-shadow:0 0 0 2px var(--surface-2)}
+  /* skill guide modal */
+  .sg-list{max-height:60vh;overflow-y:auto}
+  .sg-skill{margin-bottom:16px}
+  .sg-skill-name{font-family:var(--serif);font-size:17px;font-weight:500;margin-bottom:6px}
+  .sg-area{font-size:12.5px;line-height:1.5;padding:2px 0}
+  .sg-area-name{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink);font-weight:500}
+  .sg-area-desc{color:var(--ink-soft)}
+  .rv-more{border:none;background:none;color:var(--ink-faint);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;padding:8px 0 2px}
+  .rv-more:hover{color:var(--accent)}
+  .prio{border:1px solid var(--line);border-radius:6px;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:3px 4px;outline:none;cursor:pointer;flex-shrink:0;background:var(--surface-2)}
+  .prio.high{color:#BC4A57;border-color:#BC4A57}
+  .prio.medium{color:var(--gold)}
+  .prio.low{color:var(--ink-faint)}
+  .prio:focus{border-color:var(--accent)}
+  .star{border:none;background:none;cursor:pointer;font-size:15px;line-height:1;color:var(--ink-faint);flex-shrink:0;padding:0 2px;transition:color .12s,transform .12s}
+  .star:hover{transform:scale(1.15)}
+  .star.on{color:var(--gold)}
+  .qtags{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .add-inline{display:flex;align-items:center;gap:8px;margin-top:8px}
+  .add-inline input{border:none;border-bottom:1px solid var(--line);background:none;outline:none;font-family:var(--sans);font-size:13px;padding:4px 0;flex:1;color:var(--ink)}
+  .add-inline input:focus{border-color:var(--accent)}
+
+  /* market */
+  .mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .mcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:12px}
+  .mcard .mname{font-size:14.5px;font-weight:500}
+  .mcard .mfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
+  .price{font-family:var(--mono);font-size:13px;color:var(--gold);font-weight:500;display:flex;align-items:center;gap:6px}
+  .price .dot{width:7px;height:7px;border-radius:50%;background:var(--gold)}
+  .buy{border:1px solid var(--ink);background:none;color:var(--ink);border-radius:7px;padding:6px 13px;font-family:var(--sans);font-size:12.5px;font-weight:500;cursor:pointer;transition:.12s}
+  .buy:hover:not(:disabled){background:var(--ink);color:var(--bg)}
+  .buy:disabled{opacity:.35;cursor:not-allowed}
+
+  /* generic add button */
+  .addbtn{display:inline-flex;align-items:center;gap:7px;border:1px dashed var(--line);background:none;color:var(--ink-soft);border-radius:9px;padding:9px 14px;font-family:var(--sans);font-size:13px;cursor:pointer;transition:.12s}
+  .addbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* library */
+  .lib-item{display:flex;align-items:center;gap:10px;padding:10px 0}
+  .lib-item + .lib-item{border-top:1px solid var(--line-soft)}
+  .lib-cover{width:34px;height:46px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+  /* stats */
+  .statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
+  .statbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .statbox .num{font-family:var(--serif);font-size:32px;font-weight:500;line-height:1}
+  .statbox .lbl{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-top:7px}
+
+  .empty{color:var(--ink-faint);font-size:13.5px;padding:14px 0;font-style:italic}
+  .hint{color:var(--ink-faint);font-size:12.5px;margin-top:4px}
+  .daycard{border-bottom:1px solid var(--line-soft)}
+  .dayhead{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:none;cursor:pointer;padding:12px 0;text-align:left;font-family:var(--sans)}
+  .dayhead .daydate{font-family:var(--serif);font-size:16px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .dayhead .daydate::before{content:"▸";font-family:var(--sans);font-size:11px;color:var(--ink-faint);transition:transform .15s}
+  .dayhead.open .daydate::before{transform:rotate(90deg)}
+  .dayhead .daytotals{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--ink-faint)}
+  .dayitems{padding:0 0 12px 16px}
+  .dayitems.hidden{display:none}
+  .dayitem{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line-soft)}
+  .dayitem-l{font-size:13px;color:var(--ink);display:flex;align-items:center;gap:8px;min-width:0}
+  .dayitem-x{font-family:var(--mono);font-size:10px;color:var(--good);white-space:nowrap;flex-shrink:0}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(42,37,33,.28);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .overlay.show{display:flex}
+  .modal{background:var(--bg);border:1px solid var(--line);border-radius:16px;padding:22px;width:100%;max-width:440px;box-shadow:0 18px 50px rgba(42,37,33,.18)}
+  .modal h3{font-family:var(--serif);font-size:21px;font-weight:500;margin-bottom:14px}
+  .field{margin-bottom:13px}
+  .field label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 11px;font-family:var(--sans);font-size:14px;color:var(--ink);outline:none}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+  .field textarea{resize:vertical;min-height:80px}
+  .seg{display:flex;gap:6px}
+  .seg button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px;font-family:var(--sans);font-size:12.5px;cursor:pointer;color:var(--ink-soft)}
+  .seg button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+  .emoji-grid button{font-size:20px;padding:6px;border:1px solid transparent;border-radius:8px;background:var(--surface);cursor:pointer}
+  .emoji-grid button.on{border-color:var(--accent);background:var(--surface-2)}
+  .tagpick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
+  .tagchip{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink-soft);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 9px;cursor:pointer;transition:.12s}
+  .tagchip:hover{border-color:var(--accent)}
+  .tagchip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .cap-edit{outline:none;border-radius:5px;cursor:text;white-space:pre-wrap}
+  .cap-edit:focus{box-shadow:0 0 0 2px var(--surface-2)}
+  .modal-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
+  .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 16px;font-family:var(--sans);font-size:13px;cursor:pointer}
+  .btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:500}
+  .btn.ghost{border:none;background:none;color:var(--ink-soft)}
+  .btn.danger{color:var(--accent);border-color:var(--accent)}
+
+  /* toast */
+  .toasts{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:9px;z-index:60}
+  .toast{background:var(--ink);color:var(--bg);padding:10px 15px;border-radius:9px;font-size:13px;font-family:var(--sans);box-shadow:0 8px 24px rgba(42,37,33,.22);animation:pop .3s cubic-bezier(.2,.8,.2,1);display:flex;align-items:center;gap:9px}
+  .toast .tx{font-family:var(--mono);font-size:11px;color:var(--accent-soft)}
+  @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+  .settings-link{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);background:none;border:none;cursor:pointer;padding:4px}
+  .settings-link:hover{color:var(--accent)}
+
+  @media(max-width:760px){
+    .app{flex-direction:column}
+    .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--line)}
+    .main{padding:24px 20px 80px}
+    .page-title{font-size:30px}
+  }
+  .auth-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .auth-screen.show{display:flex}
+  .auth-card{width:100%;max-width:340px;display:flex;flex-direction:column;gap:11px;text-align:center}
+  .auth-brand{font-family:var(--serif);font-size:34px;font-weight:500}
+  .auth-sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px}
+  .auth-card input{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:11px 13px;font-family:var(--sans);font-size:14px;color:var(--ink);outline:none}
+  .auth-card input:focus{border-color:var(--accent)}
+  .auth-btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;padding:11px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer}
+  .auth-btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .auth-btn:hover{opacity:.9}
+  .auth-msg{font-size:12.5px;color:var(--accent);min-height:16px}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1 id="brandName" contenteditable="true" spellcheck="false" title="Click to rename">Foxglove</h1>
+      <div class="sub" id="todayDate">Loading…</div>
+    </div>
+
+    <div class="char" id="charCard"><!-- rendered --></div>
+
+    <div class="search">
+      <span style="color:var(--ink-faint);font-size:13px">⌕</span>
+      <input id="searchInput" placeholder="Search everything…" autocomplete="off">
+    </div>
+
+    <nav id="nav"><!-- rendered --></nav>
+
+    <button class="capture-btn" onclick="openCapture()">✦ Capture a thought</button>
+    <button class="settings-link" onclick="openSettings()">Settings</button>
+  </aside>
+
+  <main class="main" id="view"><!-- rendered --></main>
+</div>
+
+<!-- modals -->
+<div class="overlay" id="overlay"></div>
+<div class="toasts" id="toasts"></div>
+
+<!-- cloud login (only used when Supabase is configured) -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-brand">Foxglove</div>
+    <div class="auth-sub">Sign in to sync across your devices</div>
+    <input id="authEmail" type="email" placeholder="email" autocomplete="username">
+    <input id="authPass" type="password" placeholder="password" autocomplete="current-password">
+    <div class="auth-msg" id="authMsg"></div>
+    <button class="auth-btn primary" id="authSignin">Sign in</button>
+    <button class="auth-btn" id="authSignup">Create account</button>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STORAGE
+   - Local mode (default): saves in this browser only.
+   - Cloud mode: fill in the two values below to sync across
+     devices behind an email/password login (via Supabase).
+   ============================================================ */
+// ▼▼▼ PASTE YOUR SUPABASE VALUES HERE to turn on cross-device sync ▼▼▼
+const SUPABASE_URL='https://aasqtoqfuqeiiwadxofr.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_LUXCH3vwULHS6pe9NL0wBA_jjJmQBjp';
+// ▲▲▲ leave them as-is to keep using local (single-device) storage ▲▲▲
+
+const KEY='rpg-brain-state-v1';
+let mem=null; // last-resort in-memory fallback
+const CLOUD = SUPABASE_URL.indexOf('http')===0 && SUPABASE_ANON_KEY.length>20 && !!window.supabase;
+let sb = CLOUD ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+let cloudUser = null;
+let cloudTimer = null;
+
+async function loadState(){
+  if(CLOUD && cloudUser){
+    try{
+      const {data,error}=await sb.from('app_state').select('data').eq('user_id',cloudUser.id).maybeSingle();
+      if(error) throw error;
+      if(data && data.data) return data.data;   // existing cloud save
+      return null;                              // brand-new account
+    }catch(e){
+      try{ const ls=localStorage.getItem(KEY); if(ls) return JSON.parse(ls); }catch(e2){}
+      return null;
+    }
+  }
+  if(window.storage){
+    try{ const r=await window.storage.get(KEY); if(r && r.value) return JSON.parse(r.value); }catch(e){}
+  } else {
+    try{ const ls=localStorage.getItem(KEY); if(ls) return JSON.parse(ls); }catch(e){}
+  }
+  return mem;
+}
+async function persist(){
+  const json=JSON.stringify(state);
+  if(CLOUD && cloudUser){
+    try{ localStorage.setItem(KEY, json); }catch(e){}   // local cache for offline / quick reload
+    clearTimeout(cloudTimer);
+    cloudTimer=setTimeout(()=>{
+      sb.from('app_state').upsert({user_id:cloudUser.id, data:state, updated_at:new Date().toISOString()}).then(()=>{},()=>{});
+    }, 600);
+    return;
+  }
+  if(window.storage){
+    try{ await window.storage.set(KEY, json); return; }catch(e){}
+  } else {
+    try{ localStorage.setItem(KEY, json); return; }catch(e){}
+  }
+  mem = JSON.parse(json);
+}
+
+/* ============================================================
+   DEFAULT STATE
+   ============================================================ */
+const SKILLS=['Health','Fortitude','Mind','Soul','Compass'];
+const SKILL_RENAME={Physical:'Health',Intellect:'Mind',Spiritual:'Soul',Core:'Compass'};
+function renSkill(s){ return SKILL_RENAME[s]||s; }
+function defaultSkillNotes(){
+  return {
+    Health:[
+      {area:'Strength',desc:'Workouts that increase muscle mass and stamina (cardio, long walks, runs, core workouts, lifting), dancing and other classes at the gym and home'},
+      {area:'Appearance',desc:'Skincare, face mask, dressing up, make up, exfoliating, waxing, personal grooming, personal style'},
+      {area:'Flexibility',desc:'Yoga stretches and stretches for rounded shoulders, lower back pain, pelvic floor exercises'},
+      {area:'Nutrition',desc:'Cooking, healthy eating, drinks, vitamins, no sugar'},
+      {area:'Quality sleep',desc:'Consistent bedtime, sleep hygiene routines, evening wind-down routine'},
+      {area:'Health maintenance',desc:'Annual physical exams, vision check, dental cleanings, physical therapy, dentist'},
+    ],
+    Fortitude:[
+      {area:'Balance',desc:'Keeping your mood and mental states balanced, cultivate mindfulness, present alertness'},
+      {area:'Resilience',desc:'Mental strength, keep going even when you want to give up, doing things you hate doing, finishing difficult projects, delayed gratification, solving hard problems, pushing through mental fatigue, long-term goal pursuit, frustration tolerance, consistency during low motivation'},
+      {area:'Courage',desc:'Doing something that scares you, leaving your comfort zone, hard conversations, public speaking, networking, setting boundaries, expressing emotions honestly, facing criticism, applying for things you\u2019re unsure of, taking leadership'},
+      {area:'Grit',desc:'Working toward multi-year goals, finishing what you started, enduring slow progress'},
+      {area:'Self-Discipline',desc:'Keeping up daily habits, avoiding doom scrolling and bingeing, keeping promises to yourself, financial restraint, completing tasks before leisure'},
+    ],
+    Mind:[
+      {area:'Flexible Thinking',desc:'Adaptable, mental reframing, open-mindedness, not black-and-white, pragmatic problem solving, changing old patterns, challenging assumptions'},
+      {area:'Knowledge',desc:'Learning new things, concepts, ideas \u2014 reading, podcasts'},
+      {area:'Languages',desc:'Learning new languages'},
+      {area:'Logic',desc:'Rational thinking without emotional bias, level-headed, seeing things as they are, logic puzzles, chess, strategic games'},
+      {area:'Skillsets',desc:'Acquiring new skills, anything learned practically \u2014 drawing, coding, excel, writing, speaking, editing'},
+      {area:'Concentration',desc:'Deep work, flow state, memorization'},
+    ],
+    Soul:[
+      {area:'Gratitude',desc:'Grateful for everything I have, abundance mindset, gratitude journaling, thank-you letters'},
+      {area:'Loving-Kindness',desc:'Compassion toward self, close ones, strangers, volunteering'},
+      {area:'Connection',desc:'Connecting with the universe, consciousness, nature, oneness, awe, nature immersion, silent retreats, community gatherings, deep conversations'},
+      {area:'Inner Peace',desc:'Meditation, stillness, serenity, slow living'},
+      {area:'Wisdom',desc:'Self-reflection, self-knowledge, insights, journaling'},
+    ],
+    Compass:[
+      {area:'Creativity',desc:'Art, design, content creation, creative projects'},
+      {area:'Job / Career',desc:'Professional growth, portfolio development'},
+      {area:'Hobbies',desc:'Learning for fun, gaming, cooking, DIY projects and workshops, photography'},
+      {area:'Charisma',desc:'Confidence, storytelling, conversation skills, charm, energy'},
+      {area:'Traveling',desc:''},
+      {area:'Identity',desc:'Personal values, going back to my roots, personal philosophy, self-respect'},
+      {area:'Business',desc:'Side hustles'},
+    ],
+  };
+}
+const FREQ={
+  daily:    {label:'Daily',          days:1,   exp:5,  coins:2},
+  weekly:   {label:'Weekly',         days:7,   exp:10, coins:4},
+  monthly:  {label:'Monthly',        days:30,  exp:20, coins:8},
+  quarterly:{label:'Every 3 months', days:91,  exp:30, coins:12},
+  biannual: {label:'Every 6 months', days:182, exp:50, coins:20},
+  yearly:   {label:'Yearly',         days:365, exp:75, coins:30},
+};
+const PERIODIC=['weekly','monthly','quarterly','biannual','yearly'];
+function rfreq(r){ return r.freq||'daily'; }
+function daysSince(ds){ if(!ds) return Infinity; return Math.floor((new Date(today()+'T00:00:00')-new Date(ds+'T00:00:00'))/86400000); }
+const SLIP_DAYS=7; // a quest with open steps and no progress in this many days is "slipping"
+function questSlipping(q){
+  if(!q.todos.length) return false;             // nothing to do yet
+  if(q.todos.every(t=>t.done)) return false;    // finished
+  return daysSince(q.lastTouched||'') >= SLIP_DAYS;
+}
+function routineDue(r){
+  if(rfreq(r)==='daily') return r.last!==today();
+  if(!r.last) return true;
+  return daysSince(r.last) >= FREQ[rfreq(r)].days;
+}
+// for periodic: days until next due (negative = overdue)
+function daysToDue(r){ if(!r.last) return null; return FREQ[rfreq(r)].days - daysSince(r.last); }
+function uid(){return Math.random().toString(36).slice(2,9)}
+function today(){return new Date().toISOString().slice(0,10)}
+function yesterday(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10)}
+
+function defaultState(){
+  return {
+    appName:'Foxglove',
+    character:{ name:'Mira', avatar:'🦊', level:1, exp:0, coins:20, hp:100, maxHp:100 },
+    skills:Object.fromEntries(SKILLS.map(s=>[s,{level:1,exp:0}])),
+    skillNotes:defaultSkillNotes(),
+    lastActive: today(),
+    routines:[
+      {id:uid(),name:'Morning pages',freq:'daily',time:'morning',skill:'Mind',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Listen to God\u2019s word',freq:'daily',time:'morning',skill:'Soul',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Workout',freq:'daily',time:'afternoon',skill:'Health',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Read 20 pages',freq:'daily',time:'evening',skill:'Mind',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Tidy desk',freq:'daily',time:'evening',skill:'Compass',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Wash the sheets',freq:'weekly',time:'morning',skill:'Compass',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Declutter one drawer',freq:'monthly',time:'morning',skill:'Compass',streak:0,last:'',earnedOn:'',prevLast:''},
+      {id:uid(),name:'Wash curtains & sofa covers',freq:'biannual',time:'morning',skill:'Compass',streak:0,last:'',earnedOn:'',prevLast:''},
+    ],
+    tasks:[
+      {id:uid(),name:'Reply to that one email',skill:'Compass',done:false,top:true},
+      {id:uid(),name:'Stretch for 10 min',skill:'Health',done:false,top:false},
+    ],
+    quests:[
+      {id:uid(),name:'Build my second brain',tags:['design','personal'],lastTouched:today(),todos:[
+        {id:uid(),text:'Decide on v1 scope',skill:'Mind',done:true,earned:true},
+        {id:uid(),text:'Pick aesthetic direction',skill:'Mind',done:true,earned:true},
+        {id:uid(),text:'Use it daily for a week',skill:'Compass',done:false},
+        {id:uid(),text:'Tune the EXP economy',skill:'Mind',done:false},
+      ]},
+    ],
+    market:[
+      {id:uid(),name:'1 hour of guilt-free TV',price:30},
+      {id:uid(),name:'Takeout night',price:50},
+      {id:uid(),name:'Buy a book I want',price:80},
+    ],
+    library:{
+      reading:[{id:uid(),title:'The Iliad (Emily Wilson)',cover:'📖',current:true}],
+      watching:[{id:uid(),title:'(add a show)',cover:'📺',current:true}],
+      playing:[{id:uid(),title:'(add a game)',cover:'🎮',current:true}],
+    },
+    captures:[],
+    log:[],
+    bosses:[
+      {id:uid(),name:'The Sugar Goblin',habit:'No sweets after dinner',emoji:'🍩',skill:'Health',maxHp:100,hp:100,acted:'',actedType:'',earnedOn:'',slipStreak:0,lastSlipDay:'',defeated:false,defeatedOn:null},
+    ],
+    digests:{ personal:[], design:[] },
+    recipes:[],
+    fridge:'',
+  };
+}
+
+let state=null;
+let activeTab='today';
+let captureFilter=null;
+const digestOpen=new Set();
+const digestSeen=new Set();
+const recipeOpen=new Set();
+const recipeSeen=new Set();
+const RECIPE_TAGS=['easy','medium','hard','breakfast','soup','drink','sandwich','snack'];
+let chartRange=7;
+let reviewState={day:'',ids:[]};
+let captureType=null;
+let recipeFilter=null;
+let fridgeOpen=false;
+let fridgeSuggestText='';
+let fridgeSuggestLoading=false;
+const PRINT_TAGS=[{k:'want',label:'want to print'},{k:'printed',label:'printed'},{k:'no',label:'not going to print'}];
+
+/* ============================================================
+   GAME MATH
+   ============================================================ */
+function expNeeded(level){ return 100 + (level-1)*50; } // L1->2:100, L2->3:150...
+function applyExp(obj, amt){
+  obj.exp += amt;
+  let leveled=false;
+  while(obj.exp >= expNeeded(obj.level)){
+    obj.exp -= expNeeded(obj.level);
+    obj.level += 1;
+    leveled=true;
+  }
+  return leveled;
+}
+function gain({exp=0, coins=0, skill=null}){
+  let msgs=[];
+  if(exp){
+    const lv=applyExp(state.character, exp);
+    msgs.push(`+${exp} EXP`);
+    if(lv) toast(`Level up!`, `Lv ${state.character.level}`);
+  }
+  if(coins){ state.character.coins += coins; msgs.push(`+${coins} coins`); }
+  if(skill && state.skills[skill]){
+    const lv=applyExp(state.skills[skill], exp||5);
+    msgs.push(`+${exp||5} ${skill}`);
+    if(lv) toast(`${skill} up!`, `Lv ${state.skills[skill].level}`);
+  }
+  if(msgs.length) toast(msgs.join('  ·  '));
+}
+
+/* records a completed action in the permanent day log (EXP only goes up) */
+function logEvent(label, {exp=0, coins=0, spent=0, skill=null, kind='task'}={}){
+  if(!state.log) state.log=[];
+  state.log.push({ id:uid(), date:today(), ts:Date.now(), label, exp, coins, spent, skill, kind });
+}
+
+/* ============================================================
+   DAILY RESET  (streaks + top3)
+   ============================================================ */
+function dailyReset(){
+  const t=today();
+  if(state.lastActive===t) return;
+  // break streaks for DAILY routines not done yesterday or today
+  state.routines.forEach(r=>{
+    if(rfreq(r)!=='daily') return;
+    if(r.last!==t && r.last!==yesterday()) r.streak=0;
+  });
+  // rest: recover some HP each new day
+  const c=state.character;
+  if(c.hp!=null) c.hp=Math.min(c.maxHp||100, c.hp + HP_REGEN);
+  state.lastActive=t;
+}
+
+/* ============================================================
+   BOSS FIGHTS  (HP swings; EXP only ever goes up)
+   ============================================================ */
+const RESIST_DMG=10;   // damage dealt to a boss when you resist
+const RESIST_HEAL=5;   // HP you recover for resisting
+const SLIP_DMG=15;     // HP you lose when you slip
+const HP_REGEN=10;     // HP recovered each new day
+const SLIP_BOSS_HEAL=8;     // boss regains this per consecutive slip day (×streak)
+const DOWN_COIN_PENALTY=10; // coins lost when knocked out (HP hits 0)
+const RESIST_EXP=5, RESIST_COINS=2;
+const BOSS_WIN_EXP=50, BOSS_WIN_COINS=25;
+
+function clampHp(){ const c=state.character; const m=c.maxHp||100; c.hp=Math.max(0,Math.min(m, c.hp==null?m:c.hp)); }
+function bossResist(id){
+  const b=state.bosses.find(x=>x.id===id); if(!b||b.defeated) return;
+  if(b.acted===today()) return;
+  b.hp=Math.max(0,b.hp-RESIST_DMG);
+  state.character.hp=(state.character.hp==null?state.character.maxHp:state.character.hp)+RESIST_HEAL; clampHp();
+  if(b.earnedOn!==today()){ gain({exp:RESIST_EXP,coins:RESIST_COINS,skill:b.skill}); logEvent('Resisted: '+b.name,{exp:RESIST_EXP,coins:RESIST_COINS,skill:b.skill,kind:'resist'}); b.earnedOn=today(); }
+  b._prevSlipStreak=b.slipStreak||0;   // for undo
+  b.slipStreak=0;                       // resisting breaks the slip streak
+  b.acted=today(); b.actedType='resist';
+  if(b.hp<=0){ b.defeated=true; b.defeatedOn=today(); gain({exp:BOSS_WIN_EXP,coins:BOSS_WIN_COINS}); logEvent('Defeated: '+b.name,{exp:BOSS_WIN_EXP,coins:BOSS_WIN_COINS,kind:'bossWin'}); toast('Boss defeated! '+b.name,'+trophy'); }
+  save();
+}
+function bossSlip(id){
+  const b=state.bosses.find(x=>x.id===id); if(!b||b.defeated) return;
+  if(b.acted===today()) return;
+  // consecutive slip days make the habit regain ground
+  const streak=(b.lastSlipDay===yesterday()? (b.slipStreak||0)+1 : 1);
+  const wantHeal=SLIP_BOSS_HEAL*streak;
+  b.lastHeal=Math.min(wantHeal, b.maxHp-b.hp);  // what we actually applied (for undo)
+  b.hp=Math.min(b.maxHp, b.hp+wantHeal);
+  // remember prior values for undo
+  b._prevSlipStreak=b.slipStreak||0; b._prevLastSlipDay=b.lastSlipDay||'';
+  b.slipStreak=streak; b.lastSlipDay=today();
+  // player takes damage
+  const prevHp=state.character.hp==null?state.character.maxHp:state.character.hp;
+  state.character.hp=prevHp-SLIP_DMG; clampHp();
+  b.lastPenalty=0;
+  if(prevHp>0 && state.character.hp<=0){ // knocked out
+    b.lastPenalty=Math.min(DOWN_COIN_PENALTY, state.character.coins);
+    state.character.coins-=b.lastPenalty;
+    toast('Knocked out — lost '+b.lastPenalty+' coins. EXP stays. Rest & regroup.','down');
+  } else if(streak>=2){
+    toast(b.name+' is regaining ground ('+streak+' slips running)','+'+(b.lastHeal)+' boss HP');
+  }
+  b.acted=today(); b.actedType='slip';
+  save();
+}
+function bossUndo(id){
+  const b=state.bosses.find(x=>x.id===id); if(!b) return;
+  if(b.acted!==today()||b.defeated) return;
+  if(b.actedType==='resist'){
+    b.hp=Math.min(b.maxHp,b.hp+RESIST_DMG);
+    state.character.hp=(state.character.hp||0)-RESIST_HEAL; clampHp();
+    b.slipStreak=b._prevSlipStreak||0;
+  } else if(b.actedType==='slip'){
+    state.character.hp=(state.character.hp||0)+SLIP_DMG; clampHp();
+    b.hp=Math.max(0,b.hp-(b.lastHeal||0));
+    if(b.lastPenalty){ state.character.coins+=b.lastPenalty; b.lastPenalty=0; }
+    b.slipStreak=b._prevSlipStreak||0; b.lastSlipDay=b._prevLastSlipDay||'';
+  }
+  b.acted=''; b.actedType='';   // earnedOn stays, so re-resisting today won't re-award
+  save();
+}
+
+/* ---------- image upload (downscaled, stored as data URL) ---------- */
+function pickImage(cb){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(f) downscaleImage(f,cb); };
+  inp.click();
+}
+function downscaleImage(file, cb){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=640; let w=img.width, h=img.height;
+      if(w>h && w>max){ h=Math.round(h*max/w); w=max; }
+      else if(h>=w && h>max){ w=Math.round(w*max/h); h=max; }
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      try{ cb(cv.toDataURL('image/jpeg',0.6)); }catch(e){ toast('Could not process that image'); }
+    };
+    img.onerror=()=>toast('Could not read that image');
+    img.src=reader.result;
+  };
+  reader.onerror=()=>toast('Could not read that file');
+  reader.readAsDataURL(file);
+}
+
+/* ============================================================
+   RENDER HELPERS
+   ============================================================ */
+const $=s=>document.querySelector(s);
+function el(html){const d=document.createElement('div');d.innerHTML=html.trim();return d.firstChild}
+function esc(s){return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function toast(main,tx){
+  const t=el(`<div class="toast">${tx?`<span class="tx">${esc(tx)}</span>`:''}<span>${esc(main)}</span></div>`);
+  $('#toasts').appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300)},2200);
+}
+
+const NAV=[
+  {id:'today',label:'Today',ico:'◆'},
+  {id:'tasks',label:'Tasks',ico:'☑'},
+  {id:'routines',label:'Routines',ico:'↻'},
+  {id:'quests',label:'Quests',ico:'⚑'},
+  {id:'fights',label:'Fights',ico:'⚔'},
+  {id:'library',label:'Library',ico:'❑'},
+  {id:'digest',label:'Digest',ico:'☾'},
+  {id:'design',label:'Design',ico:'✣'},
+  {id:'recipes',label:'Recipes',ico:'❧'},
+  {id:'skills',label:'Skills',ico:'❖'},
+  {id:'stats',label:'Statistics',ico:'▤'},
+  {id:'market',label:'Market',ico:'✸'},
+  {id:'capture',label:'The Burrow',ico:'✦'},
+];
+
+function renderNav(){
+  $('#nav').innerHTML='';
+  NAV.forEach((n,i)=>{
+    if(n.id==='library') $('#nav').appendChild(el('<div class="nav-sep"></div>'));
+    const b=el(`<button class="nav-btn ${activeTab===n.id?'active':''}"><span class="ico">${n.ico}</span>${n.label}</button>`);
+    b.onclick=()=>{activeTab=n.id;renderAll()};
+    $('#nav').appendChild(b);
+  });
+}
+
+function renderChar(){
+  const c=state.character;
+  const need=expNeeded(c.level);
+  const pct=Math.min(100,Math.round(c.exp/need*100));
+  const maxHp=c.maxHp||100;
+  const hp=Math.max(0,Math.min(maxHp, c.hp==null?maxHp:c.hp));
+  const hpPct=Math.round(hp/maxHp*100);
+  $('#charCard').innerHTML=`
+    <div class="char-top">
+      <div class="avatar" onclick="openSettings()">${c.avatar}</div>
+      <div class="char-id">
+        <div class="char-name" onclick="openSettings()">${esc(c.name)}</div>
+        <div class="char-lvl">Level ${c.level}</div>
+      </div>
+    </div>
+    <div class="xpwrap">
+      <div class="hpbar"><div class="hpfill" style="width:${hpPct}%"></div></div>
+      <div class="hpmeta"><span>HP</span><span>${hp} / ${maxHp}</span></div>
+    </div>
+    <div class="xpwrap">
+      <div class="xpbar"><div class="xpfill" style="width:${pct}%"></div></div>
+      <div class="xpmeta"><span>EXP</span><span>${c.exp} / ${need}</span></div>
+    </div>
+    <div class="coins"><span class="dot"></span>${c.coins} coins</div>`;
+}
+
+/* ---------- Routine row ---------- */
+function routineRow(r,compact){
+  const periodic=rfreq(r)!=='daily';
+  const done = periodic ? !routineDue(r) : (r.last===today());
+  // status text for periodic chores
+  let status='';
+  if(periodic){
+    if(routineDue(r)){
+      const d=daysToDue(r);
+      status = (d===null) ? '<span class="due">due now</span>' : `<span class="due">overdue ${Math.abs(d)}d</span>`;
+    } else {
+      status = `<span class="nextdue">next in ${daysToDue(r)}d</span>`;
+    }
+  }
+  const row=el(`<div class="row">
+    <button class="check ${done?'done':''}"></button>
+    <div class="row-body">
+      <div class="row-title ${done&&!periodic?'done':''}" ${compact?'':'contenteditable="true" spellcheck="false"'}>${esc(r.name)}</div>
+      <div class="row-meta">
+        <span class="tag skill">${esc(r.skill)}</span>
+        ${periodic?`<span class="tag" style="font-size:9px">${FREQ[rfreq(r)].label}</span>`:''}
+        ${!periodic && r.streak>0?`<span class="streak">🔥 ${r.streak}</span>`:''}
+        ${status}
+      </div>
+    </div>
+    ${compact?'':'<button class="x-del">✕</button>'}
+  </div>`);
+  row.querySelector('.check').onclick=()=>toggleRoutine(r.id);
+  if(!compact){
+    const titleEl=row.querySelector('.row-title');
+    titleEl.style.outline='none';
+    titleEl.onblur=()=>{ r.name=titleEl.textContent.trim()||r.name; save(); };
+    titleEl.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();titleEl.blur();} };
+    row.querySelector('.x-del').onclick=()=>{ state.routines=state.routines.filter(x=>x.id!==r.id); save(); };
+  }
+  return row;
+}
+function toggleRoutine(id){
+  const r=state.routines.find(x=>x.id===id);
+  if(!r) return;
+  const t=today();
+  if(rfreq(r)!=='daily'){           // periodic chore
+    if(!routineDue(r)){             // currently satisfied -> undo, make it due again
+      r.last=r.prevLast||'';
+      save();
+    } else {                        // due -> complete it
+      const f=FREQ[rfreq(r)];
+      r.prevLast=r.last;
+      r.last=t;
+      if(r.earnedOn!==t){ gain({exp:f.exp,coins:f.coins,skill:r.skill}); logEvent(r.name,{exp:f.exp,coins:f.coins,skill:r.skill,kind:'routine'}); r.earnedOn=t; }
+      save();
+    }
+    return;
+  }
+  // daily routine
+  if(r.last===t){ // uncheck — silent correction, never subtracts EXP
+    r.last='';
+    r.streak=Math.max(0,r.streak-1);
+    save();
+  } else {        // mark done
+    if(r.earnedOn===t){           // already paid out today (re-checking after an undo)
+      r.last=t; r.streak=r.streak+1; save();
+    } else {
+      r.streak = (r.last===yesterday()) ? r.streak+1 : 1;
+      r.last=t; r.earnedOn=t;
+      gain({exp:5,coins:2,skill:r.skill});
+      logEvent(r.name,{exp:5,coins:2,skill:r.skill,kind:'routine'});
+      save();
+    }
+  }
+}
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+function viewToday(){
+  const d=new Date();
+  const dateStr=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const dailyRoutines=state.routines.filter(r=>rfreq(r)==='daily');
+  const doneCount=dailyRoutines.filter(r=>r.last===today()).length;
+
+  const wrap=el(`<div>
+    <div class="page-head">
+      <div class="eyebrow">Today</div>
+      <div class="page-title">${dateStr}</div>
+    </div>
+    <div class="cols">
+      <div class="colL"></div>
+      <div class="colR"></div>
+    </div>
+  </div>`);
+  const L=wrap.querySelector('.colL'), R=wrap.querySelector('.colR');
+
+  /* TOP 3 — your starred tasks */
+  const topTasks=state.tasks.filter(t=>t.top).slice(0,3);
+  const top=el(`<div class="section">
+    <div class="section-head"><span class="eyebrow">Top 3 for today</span></div>
+  </div>`);
+  topTasks.forEach(t=>top.appendChild(taskRow(t)));
+  // open spots to fill up to 3
+  for(let i=topTasks.length;i<3;i++){
+    const row=el(`<div class="row">
+      <button class="check"></button>
+      <div class="row-body"><input style="border:none;background:none;outline:none;font-size:14px;width:100%;color:var(--ink)" placeholder="(open spot — type a task)"></div>
+    </div>`);
+    const inp=row.querySelector('input');
+    const add=()=>{ if(inp.value.trim()){ state.tasks.push({id:uid(),name:inp.value.trim(),skill:'Compass',done:false,top:true}); save(); } };
+    inp.onkeydown=e=>{ if(e.key==='Enter') add(); };
+    inp.onblur=add;
+    top.appendChild(row);
+  }
+  top.appendChild(el('<div class="hint">Star any task to feature it here · max 3.</div>'));
+  L.appendChild(top);
+
+  /* ROUTINES today */
+  const rt=el(`<div class="section">
+    <div class="section-head"><span class="eyebrow">Routines today</span><span class="right">${doneCount}/${dailyRoutines.length}</span></div>
+  </div>`);
+  ['morning','afternoon','evening'].forEach(slot=>{
+    const items=dailyRoutines.filter(r=>r.time===slot);
+    if(!items.length) return;
+    rt.appendChild(el(`<div class="group-label">${slot}</div>`));
+    items.forEach(r=>rt.appendChild(routineRow(r,true)));
+  });
+  if(!dailyRoutines.length) rt.appendChild(el('<div class="empty">No daily routines yet — add some in the Routines tab.</div>'));
+  L.appendChild(rt);
+
+  /* UPKEEP DUE — periodic chores that need doing */
+  const dueChores=state.routines.filter(r=>PERIODIC.includes(rfreq(r)) && routineDue(r));
+  if(dueChores.length){
+    const up=el(`<div class="section"><div class="section-head"><span class="eyebrow" style="color:var(--accent)">Upkeep due</span><span class="right">${dueChores.length}</span></div></div>`);
+    dueChores.forEach(r=>up.appendChild(routineRow(r,true)));
+    L.appendChild(up);
+  }
+
+  /* ACTIVE QUESTS */
+  const qs=el(`<div class="section"><div class="section-head"><span class="eyebrow">Active quests</span></div></div>`);
+  if(!state.quests.length) qs.appendChild(el('<div class="empty">No quests yet.</div>'));
+  state.quests.forEach(q=>{
+    const total=q.todos.length, done=q.todos.filter(t=>t.done).length;
+    const pct=total?Math.round(done/total*100):0;
+    const card=el(`<div class="qcard">
+      <div class="qcard-head"><div class="qname" style="font-size:15px;cursor:default">${esc(q.name)}</div></div>
+      <div class="qprog-wrap"><div class="qprog"><div class="qprog-fill" style="width:${pct}%"></div></div>
+        <div class="qprog-meta"><span>${q.tags.map(esc).join(' · ')||''}</span><span>${done}/${total}</span></div></div>
+    </div>`);
+    qs.appendChild(card);
+  });
+  L.appendChild(qs);
+
+  /* OTHER TASKS — everything not starred into Top 3 (lower priority, below quests) */
+  const otherTasks=state.tasks.filter(t=>!t.top && !t.done).sort((a,b)=>PRIO_RANK[a.priority||'medium']-PRIO_RANK[b.priority||'medium']);
+  if(otherTasks.length){
+    const ot=el(`<div class="section"><div class="section-head"><span class="eyebrow">Other tasks</span><span class="right">${otherTasks.length}</span></div></div>`);
+    otherTasks.forEach(t=>ot.appendChild(taskRow(t)));
+    L.appendChild(ot);
+  }
+
+  /* SLIPPING — quests that have gone quiet */
+  const slipping=state.quests.filter(questSlipping);
+  const slip=el(`<div class="panel"><div class="panel-title">Slipping</div></div>`);
+  if(!slipping.length){
+    slip.appendChild(el('<div class="empty" style="padding:2px 0;font-size:12.5px">Nothing slipping right now. Quests that go quiet — no progress in a while — surface here.</div>'));
+  } else {
+    slipping.forEach(q=>{
+      const d=daysSince(q.lastTouched||'');
+      const row=el(`<div class="lib-item"><div style="flex:1;min-width:0">${esc(q.name)}</div><span class="due">quiet ${isFinite(d)?d+'d':'—'}</span></div>`);
+      slip.appendChild(row);
+    });
+  }
+  R.appendChild(slip);
+
+  /* ACTIVE FIGHT panel */
+  const activeBosses=state.bosses.filter(b=>!b.defeated);
+  if(activeBosses.length){
+    const bp=el(`<div class="section"><div class="section-head"><span class="eyebrow">Active fight${activeBosses.length>1?'s':''}</span></div></div>`);
+    activeBosses.slice(0,2).forEach(b=>bp.appendChild(bossCard(b,true)));
+    R.appendChild(bp);
+  }
+
+  /* SKILLS panel */
+  const sk=el(`<div class="panel"><div class="panel-title">Skills</div></div>`);
+  SKILLS.forEach(s=>{
+    const sd=state.skills[s];const need=expNeeded(sd.level);const pct=Math.round(sd.exp/need*100);
+    sk.appendChild(el(`<div class="skill-row">
+      <div class="skill-head"><span class="skill-name">${s}</span><span class="skill-lvl">Lv ${sd.level} · ${sd.exp}/${need}</span></div>
+      <div class="skill-bar"><div class="skill-fill" style="width:${pct}%"></div></div>
+    </div>`));
+  });
+  R.appendChild(sk);
+
+  /* READING / WATCHING / PLAYING */
+  const lib=el(`<div class="panel"><div class="panel-title">Currently</div></div>`);
+  const cur=[...state.library.reading,...state.library.watching,...(state.library.playing||[])].filter(x=>x.status!=='done');
+  if(!cur.length) lib.appendChild(el('<div class="empty">Nothing set as current.</div>'));
+  cur.forEach(x=>lib.appendChild(el(`<div class="lib-item"><div class="lib-cover">${x.cover||'📖'}</div><div>${esc(x.title)}</div></div>`)));
+  R.appendChild(lib);
+
+  /* NEEDS REVIEW — random bookmarks resurface daily */
+  const bookmarks=state.captures.filter(c=>c.type==='bookmark');
+  const valid = reviewState.ids.length && reviewState.ids.every(id=>bookmarks.some(b=>b.id===id));
+  if(reviewState.day!==today() || !valid || reviewState.ids.length < Math.min(3,bookmarks.length)){
+    const shuffled=[...bookmarks].sort(()=>Math.random()-0.5);
+    reviewState={day:today(), ids:shuffled.slice(0,3).map(b=>b.id)};
+  }
+  const reviewItems=reviewState.ids.map(id=>bookmarks.find(b=>b.id===id)).filter(Boolean);
+  const rv=el(`<div class="panel"><div class="panel-title">Needs review</div></div>`);
+  if(!bookmarks.length){
+    rv.appendChild(el('<div class="empty" style="padding:2px 0;font-size:12.5px">Bookmarks you capture will resurface here so you actually revisit them.</div>'));
+  } else {
+    reviewItems.forEach(b=>{
+      const t=(b.text||'').trim();
+      const isUrl=/^https?:\/\/\S+$/.test(t);
+      const inner=isUrl?`<a href="${esc(t)}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;word-break:break-all">${esc(t)}</a>`:esc(b.text);
+      rv.appendChild(el(`<div class="lib-item" style="align-items:flex-start"><div style="flex:1;min-width:0;font-size:13px;line-height:1.45">${inner}</div></div>`));
+    });
+    const more=el('<button class="rv-more">show more →</button>');
+    more.onclick=()=>{ captureType='bookmark'; activeTab='capture'; renderAll(); };
+    rv.appendChild(more);
+  }
+  R.appendChild(rv);
+
+  return wrap;
+}
+
+function viewRoutines(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Habits &amp; upkeep · the rarer it is, the more it pays</div><div class="page-title sm">Routines</div></div>
+    <div style="max-width:560px"><div class="body"></div>
+    <button class="addbtn" style="margin-top:14px">+ Add routine</button></div>
+  </div>`);
+  const body=wrap.querySelector('.body');
+  // daily, by time of day
+  ['morning','afternoon','evening'].forEach(slot=>{
+    const items=state.routines.filter(r=>rfreq(r)==='daily' && r.time===slot);
+    body.appendChild(el(`<div class="group-label">${slot}</div>`));
+    if(!items.length) body.appendChild(el('<div class="empty" style="padding:6px 0">—</div>'));
+    items.forEach(r=>body.appendChild(routineRow(r,false)));
+  });
+  // periodic upkeep, by frequency
+  const periodic=state.routines.filter(r=>PERIODIC.includes(rfreq(r)));
+  if(periodic.length){
+    body.appendChild(el('<div class="group-label" style="margin-top:24px;color:var(--accent)">Upkeep</div>'));
+    PERIODIC.forEach(f=>{
+      const items=state.routines.filter(r=>rfreq(r)===f).sort((a,b)=>(routineDue(b)?1:0)-(routineDue(a)?1:0));
+      if(!items.length) return;
+      body.appendChild(el(`<div class="group-label" style="margin-top:10px">${FREQ[f].label}</div>`));
+      items.forEach(r=>body.appendChild(routineRow(r,false)));
+    });
+  }
+  wrap.querySelector('.addbtn').onclick=addRoutineModal;
+  return wrap;
+}
+
+function viewQuests(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Projects · each step gives +3 EXP to you &amp; its skill</div><div class="page-title sm">Quests</div></div>
+    <div class="body" style="max-width:640px"></div>
+    <button class="addbtn" style="margin-top:6px">+ New quest</button>
+  </div>`);
+  const body=wrap.querySelector('.body');
+  if(!state.quests.length) body.appendChild(el('<div class="empty">No quests yet. Start one below.</div>'));
+  state.quests.forEach(q=>body.appendChild(questCard(q)));
+  wrap.querySelector('.addbtn').onclick=()=>{ state.quests.push({id:uid(),name:'New quest',tags:[],todos:[],lastTouched:today()}); save(); };
+  return wrap;
+}
+function skillSelect(current,onChange){
+  const wrap=el('<span class="skillwrap"></span>');
+  const sel=el(`<select class="skillpick">${SKILLS.map(s=>`<option ${s===current?'selected':''}>${s}</option>`).join('')}</select>`);
+  sel.onchange=()=>onChange(sel.value);
+  const q=el('<button class="skillq" title="What counts for each skill?">?</button>');
+  q.onclick=e=>{ e.preventDefault(); openSkillGuide(); };
+  wrap.appendChild(sel); wrap.appendChild(q);
+  return wrap;
+}
+function questCard(q){
+  const total=q.todos.length, done=q.todos.filter(t=>t.done).length;
+  const pct=total?Math.round(done/total*100):0;
+  const card=el(`<div class="qcard">
+    <div class="qcard-head">
+      <div class="qname" contenteditable="true" spellcheck="false">${esc(q.name)}</div>
+      <button class="x-del">✕</button>
+    </div>
+    <div class="qprog-wrap"><div class="qprog"><div class="qprog-fill" style="width:${pct}%"></div></div>
+      <div class="qprog-meta"><span>progress</span><span>${done}/${total} · ${pct}%</span></div></div>
+    <div class="qtodos"></div>
+    <div class="add-inline"><span style="color:var(--ink-faint)">+</span><input placeholder="Add a step…"></div>
+    <div class="qtags"></div>
+    <div class="add-inline" style="margin-top:4px"><span class="tag" style="background:none;padding:0;color:var(--ink-faint)">TAGS</span><input class="taginput" placeholder="add tag, Enter" style="font-size:12px"></div>
+  </div>`);
+  // name edit
+  const nameEl=card.querySelector('.qname');
+  nameEl.onblur=()=>{ q.name=nameEl.textContent.trim()||'Untitled'; save(); };
+  nameEl.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();nameEl.blur()}};
+  // delete
+  card.querySelector('.x-del').onclick=()=>{ if(confirm('Delete this quest?')){state.quests=state.quests.filter(x=>x.id!==q.id);save();} };
+  // todos
+  const tw=card.querySelector('.qtodos');
+  q.todos.forEach(t=>{
+    if(!t.skill) t.skill='Compass';
+    const row=el(`<div class="qtodo"><button class="check ${t.done?'done':''}"></button><input class="txt ${t.done?'done':''}" value="${esc(t.text)}"></div>`);
+    row.querySelector('.check').onclick=()=>toggleTodo(q,t);
+    const inp=row.querySelector('.txt');
+    inp.onchange=()=>{t.text=inp.value;save()};
+    row.appendChild(skillSelect(t.skill,v=>{t.skill=v;save()}));
+    const del=el('<button class="x-del">✕</button>');
+    del.onclick=()=>{q.todos=q.todos.filter(x=>x.id!==t.id);save()};
+    row.appendChild(del);
+    tw.appendChild(row);
+  });
+  // add todo
+  const addInp=card.querySelector('.qtodos + .add-inline input');
+  addInp.onkeydown=e=>{ if(e.key==='Enter'&&addInp.value.trim()){ q.todos.push({id:uid(),text:addInp.value.trim(),skill:'Compass',done:false}); q.lastTouched=today(); save(); } };
+  // tags
+  const tagWrap=card.querySelector('.qtags');
+  q.tags.forEach((tg,i)=>{
+    const t=el(`<span class="tag">${esc(tg)} <span style="cursor:pointer;color:var(--ink-faint)">✕</span></span>`);
+    t.querySelector('span').onclick=()=>{q.tags.splice(i,1);save()};
+    tagWrap.appendChild(t);
+  });
+  const tagInp=card.querySelector('.taginput');
+  tagInp.onkeydown=e=>{ if(e.key==='Enter'&&tagInp.value.trim()){ q.tags.push(tagInp.value.trim());save(); } };
+  return card;
+}
+function toggleTodo(q,t){
+  t.done=!t.done;
+  if(t.done){
+    q.lastTouched=today();   // progress = the quest is alive
+    if(!t.earned){ gain({exp:3,skill:t.skill}); logEvent(t.text+'  ·  '+q.name,{exp:3,skill:t.skill,kind:'quest'}); t.earned=true; }
+    if(q.todos.length && q.todos.every(x=>x.done) && !q.earnedComplete){
+      gain({exp:25,coins:10}); logEvent('Quest complete: '+q.name,{exp:25,coins:10,kind:'questDone'}); q.earnedComplete=true; toast('Quest complete!','+bonus');
+    }
+  }
+  // un-checking is a silent correction — EXP already earned stays earned
+  save();
+}
+
+function viewTasks(){
+  const open=state.tasks.filter(t=>!t.done).sort((a,b)=>(PRIO_RANK[a.priority||'medium']-PRIO_RANK[b.priority||'medium']) || (b.top?1:0)-(a.top?1:0));
+  const done=state.tasks.filter(t=>t.done);
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">One-off to-dos · +5 EXP to you &amp; the skill</div><div class="page-title sm">Tasks</div></div>
+    <div class="body" style="max-width:600px">
+      <div class="add-inline" style="margin-bottom:6px">
+        <span style="color:var(--ink-faint)">+</span>
+        <input class="newtask" placeholder="Add a task, then Enter…">
+      </div>
+      <div class="openlist"></div>
+    </div>
+  </div>`);
+  const openList=wrap.querySelector('.openlist');
+  if(!open.length) openList.appendChild(el('<div class="empty">No open tasks — nice and clear.</div>'));
+  open.forEach(t=>openList.appendChild(taskRow(t)));
+  if(done.length){
+    wrap.querySelector('.body').appendChild(el('<div class="group-label" style="margin-top:22px">Done</div>'));
+    const dl=el('<div></div>');
+    done.forEach(t=>dl.appendChild(taskRow(t)));
+    wrap.querySelector('.body').appendChild(dl);
+  }
+  const ni=wrap.querySelector('.newtask');
+  ni.onkeydown=e=>{ if(e.key==='Enter'&&ni.value.trim()){ state.tasks.push({id:uid(),name:ni.value.trim(),skill:'Compass',done:false}); save(); } };
+  return wrap;
+}
+const PRIO_RANK={high:0,medium:1,low:2};
+function prioritySelect(current,onChange){
+  const cur=current||'medium';
+  const sel=el(`<select class="prio ${cur}">
+    <option value="high" ${cur==='high'?'selected':''}>High</option>
+    <option value="medium" ${cur==='medium'?'selected':''}>Med</option>
+    <option value="low" ${cur==='low'?'selected':''}>Low</option>
+  </select>`);
+  sel.onchange=()=>onChange(sel.value);
+  return sel;
+}
+function taskRow(t){
+  if(!t.skill) t.skill='Compass';
+  if(!t.priority) t.priority='medium';
+  const row=el(`<div class="qtodo" style="padding:8px 0;border-top:1px solid var(--line-soft)">
+    <button class="check ${t.done?'done':''}"></button>
+    <input class="txt ${t.done?'done':''}" value="${esc(t.name)}">
+  </div>`);
+  row.querySelector('.check').onclick=()=>toggleTask(t);
+  const inp=row.querySelector('.txt');
+  inp.onchange=()=>{t.name=inp.value;save()};
+  row.appendChild(prioritySelect(t.priority,v=>{t.priority=v;save()}));
+  row.appendChild(skillSelect(t.skill,v=>{t.skill=v;save()}));
+  const star=el(`<button class="star ${t.top?'on':''}" title="${t.top?'Remove from Top 3':'Add to Top 3'}">${t.top?'★':'☆'}</button>`);
+  star.onclick=()=>toggleTop(t);
+  row.appendChild(star);
+  const del=el('<button class="x-del">✕</button>');
+  del.onclick=()=>{state.tasks=state.tasks.filter(x=>x.id!==t.id);save()};
+  row.appendChild(del);
+  return row;
+}
+function toggleTop(t){
+  if(t.top){ t.top=false; }
+  else {
+    if(state.tasks.filter(x=>x.top).length>=3){ toast('Top 3 is full — unstar one first'); return; }
+    t.top=true;
+  }
+  save();
+}
+function toggleTask(t){
+  t.done=!t.done;
+  if(t.done && !t.earned){
+    gain({exp:5,coins:3,skill:t.skill});
+    logEvent(t.name,{exp:5,coins:3,skill:t.skill,kind:'task'});
+    t.earned=true;
+  }
+  // un-checking is a silent correction — EXP already earned stays earned
+  save();
+}
+
+function viewLibrary(){
+  const cols=[
+    {k:'reading',label:'Reading',cover:'📖',add:'+ Add book',prompt:'Book title:',verb:'Read',doneLabel:'Read'},
+    {k:'watching',label:'Watching',cover:'📺',add:'+ Add show',prompt:'Show / movie title:',verb:'Watched',doneLabel:'Watched'},
+    {k:'playing',label:'Playing',cover:'🎮',add:'+ Add game',prompt:'Game title:',verb:'Played',doneLabel:'Played'},
+  ];
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">What you're into</div><div class="page-title sm">Library</div></div>
+    <div class="libgrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:30px"></div>
+  </div>`);
+  const grid=wrap.querySelector('.libgrid');
+
+  function libRow(col,x){
+    const isDone=x.status==='done';
+    const row=el(`<div class="lib-item">
+      <div class="lib-cover">${x.cover||col.cover}</div>
+      <div style="flex:1;min-width:0">
+        <div class="libtitle ${isDone?'done':''}" contenteditable="true" spellcheck="false">${esc(x.title)}</div>
+        ${isDone?`<div class="libdate"><span>${col.doneLabel.toUpperCase()}</span><input type="date" value="${esc(x.finishedOn||today())}"></div>`:''}
+      </div>
+      <button class="lib-act">${isDone?'↩ Reading':'✓ '+col.verb}</button>
+      <button class="x-del">✕</button>
+    </div>`);
+    const titleEl=row.querySelector('.libtitle');
+    titleEl.onblur=()=>{ x.title=titleEl.textContent.trim()||x.title; save(); };
+    titleEl.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();titleEl.blur();} };
+    if(isDone){
+      const dateInp=row.querySelector('.libdate input');
+      dateInp.onchange=()=>{ x.finishedOn=dateInp.value||today(); save(); };
+    }
+    row.querySelector('.lib-act').onclick=()=>{
+      if(isDone){ x.status='current'; x.finishedOn=null; }
+      else { x.status='done'; x.finishedOn=today(); toast(col.verb+': '+x.title); }
+      save();
+    };
+    row.querySelector('.x-del').onclick=()=>{ state.library[col.k]=state.library[col.k].filter(y=>y.id!==x.id); save(); };
+    return row;
+  }
+
+  cols.forEach(col=>{
+    const items=state.library[col.k]||[];
+    const current=items.filter(x=>x.status!=='done');
+    const done=items.filter(x=>x.status==='done');
+    const sec=el(`<div><div class="section-head"><span class="eyebrow">${col.label}</span></div><div class="list"></div><button class="addbtn" style="margin-top:12px">${col.add}</button></div>`);
+    const list=sec.querySelector('.list');
+    if(!current.length) list.appendChild(el('<div class="empty" style="padding:8px 0">Nothing right now.</div>'));
+    current.forEach(x=>list.appendChild(libRow(col,x)));
+    if(done.length){
+      list.appendChild(el(`<div class="group-label" style="margin-top:16px">${col.doneLabel} · ${done.length}</div>`));
+      done.forEach(x=>list.appendChild(libRow(col,x)));
+    }
+    sec.querySelector('.addbtn').onclick=()=>{
+      const title=prompt(col.prompt);
+      if(title&&title.trim()){ state.library[col.k].push({id:uid(),title:title.trim(),cover:col.cover,status:'current',finishedOn:null}); save(); }
+    };
+    grid.appendChild(sec);
+  });
+  return wrap;
+}
+
+function bossCard(b,compact){
+  const pct=Math.round(b.hp/b.maxHp*100);
+  const actedToday=b.acted===today();
+  const card=el(`<div class="boss-card ${b.defeated?'defeated':''}">
+    <div class="boss-top">
+      <div class="boss-emoji">${b.defeated?'🏆':(b.emoji||'👾')}</div>
+      <div style="flex:1;min-width:0">
+        <div class="boss-name">${esc(b.name)}</div>
+        <div class="boss-habit">${b.defeated?`Defeated ${esc(b.defeatedOn||'')}`:esc(b.habit)}</div>
+      </div>
+      ${compact?'':'<button class="x-del" style="opacity:.5">✕</button>'}
+    </div>
+    ${b.defeated?'<div class="trophy">★ Victory — habit broken</div>':`
+    <div class="boss-hpwrap">
+      <div class="boss-hp"><div class="boss-hpfill" style="width:${pct}%"></div></div>
+      <div class="boss-hpmeta"><span>${esc(b.skill)}</span><span>${b.hp} / ${b.maxHp} HP</span></div>
+      ${(b.slipStreak||0)>=2?`<div style="font-family:var(--mono);font-size:9.5px;color:#BC4A57;margin-top:5px">⚠ regaining ground · ${b.slipStreak} slips in a row</div>`:''}
+    </div>`}
+  </div>`);
+  if(!compact && !b.defeated){
+    card.querySelector('.x-del')&&(card.querySelector('.x-del').onclick=()=>{ if(confirm('Remove this fight?')){state.bosses=state.bosses.filter(x=>x.id!==b.id);save();} });
+  } else if(!compact && b.defeated){
+    const x=card.querySelector('.x-del'); if(x) x.onclick=()=>{ state.bosses=state.bosses.filter(z=>z.id!==b.id);save(); };
+  }
+  if(!b.defeated){
+    if(actedToday){
+      const acted=el(`<div class="boss-acted">
+        <span>${b.actedType==='resist'?'💪 Resisted today — nice':'You slipped today · regroup tomorrow'}</span>
+        <button class="undo">undo</button>
+      </div>`);
+      acted.querySelector('.undo').onclick=()=>bossUndo(b.id);
+      card.appendChild(acted);
+    } else {
+      const acts=el(`<div class="boss-actions">
+        <button class="btn-resist">💪 I resisted</button>
+        <button class="btn-slip">I slipped</button>
+      </div>`);
+      acts.querySelector('.btn-resist').onclick=()=>bossResist(b.id);
+      acts.querySelector('.btn-slip').onclick=()=>bossSlip(b.id);
+      card.appendChild(acts);
+    }
+  }
+  return card;
+}
+
+function viewFights(){
+  const active=state.bosses.filter(b=>!b.defeated);
+  const won=state.bosses.filter(b=>b.defeated);
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Resist to deal damage · slip and you take it</div><div class="page-title sm">Fights</div></div>
+    <div class="body" style="max-width:560px"></div>
+    <button class="addbtn" style="margin-top:4px">+ New fight</button>
+  </div>`);
+  const body=wrap.querySelector('.body');
+  if(!active.length) body.appendChild(el('<div class="empty">No active fights. Name a bad habit and turn it into a boss to beat.</div>'));
+  active.forEach(b=>body.appendChild(bossCard(b,false)));
+  if(won.length){
+    body.appendChild(el(`<div class="group-label" style="margin-top:20px">Defeated · ${won.length}</div>`));
+    won.forEach(b=>body.appendChild(bossCard(b,false)));
+  }
+  wrap.querySelector('.addbtn').onclick=addBossModal;
+  return wrap;
+}
+
+const BOSS_EMOJI=['👾','🐉','🍩','📱','😈','🕷️','🦠','🍷','🚬','🛌','👹','🌫️'];
+function addBossModal(){
+  let emoji='👾';
+  const m=el(`<div class="modal">
+    <h3>New fight</h3>
+    <div class="field"><label>Boss name (have fun)</label><input id="bName" placeholder="e.g. The Doomscroll Dragon"></div>
+    <div class="field"><label>The bad habit you're resisting</label><input id="bHabit" placeholder="e.g. No phone in bed"></div>
+    <div class="field"><label>Icon</label><div class="emoji-grid">${BOSS_EMOJI.map(a=>`<button data-a="${a}" class="${a===emoji?'on':''}">${a}</button>`).join('')}</div></div>
+    <div class="field"><label>Difficulty</label><select id="bHp"><option value="50">Small — 50 HP (~5 days)</option><option value="100" selected>Medium — 100 HP (~10 days)</option><option value="200">Tough — 200 HP (~20 days)</option></select></div>
+    <div class="field"><label>Willpower builds skill <button type="button" class="skillq" onclick="openSkillGuide()">?</button></label><select id="bSkill">${SKILLS.map(s=>`<option ${s==='Soul'?'selected':''}>${s}</option>`).join('')}</select></div>
+    <div class="modal-actions"><button class="btn ghost" id="c">Cancel</button><button class="btn primary" id="s">Start fight</button></div>
+  </div>`);
+  m.querySelectorAll('.emoji-grid button').forEach(b=>b.onclick=()=>{m.querySelectorAll('.emoji-grid button').forEach(x=>x.classList.remove('on'));b.classList.add('on');emoji=b.dataset.a});
+  m.querySelector('#c').onclick=closeModal;
+  m.querySelector('#s').onclick=()=>{
+    const n=m.querySelector('#bName').value.trim(); if(!n)return;
+    const hp=parseInt(m.querySelector('#bHp').value)||100;
+    state.bosses.push({id:uid(),name:n,habit:m.querySelector('#bHabit').value.trim(),emoji,skill:m.querySelector('#bSkill').value,maxHp:hp,hp,acted:'',actedType:'',earnedOn:'',defeated:false,defeatedOn:null});
+    closeModal();save();
+  };
+  showModal(m);setTimeout(()=>m.querySelector('#bName').focus(),50);
+}
+
+/* ============================================================
+   DIGESTS  (personal monthly + design)
+   ============================================================ */
+const PERSONAL_FIELDS=[
+  {k:'read',label:'Read'},
+  {k:'watched',label:'Watched'},
+  {k:'articles',label:'Articles & reads'},
+  {k:'doing',label:'Doing'},
+  {k:'whimsical',label:'Whimsical things I noticed'},
+  {k:'ins',label:'In'},
+  {k:'outs',label:'Out'},
+  {k:'notes',label:'Notes'},
+];
+const DESIGN_FIELDS=[
+  {k:'improved',label:'How my design improved'},
+  {k:'urls',label:'URLs & references'},
+  {k:'notes',label:'Notes'},
+];
+function monthKey(){ return today().slice(0,7); }
+function monthLabel(mk){ return new Date(mk+'-01T00:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'}); }
+function monthWord(mk){ return new Date(mk+'-01T00:00:00').toLocaleDateString('en-US',{month:'long'}).toLowerCase(); }
+
+function editBlock(label, value, onSave){
+  const wrap=el(`<div class="dg-block">
+    <div class="dg-label">${esc(label)}</div>
+    <div class="dg-edit" contenteditable="true" spellcheck="false" data-ph="—">${esc(value||'')}</div>
+  </div>`);
+  const ed=wrap.querySelector('.dg-edit');
+  ed.onblur=()=>onSave(ed.innerText.trim());
+  return wrap;
+}
+function moodboard(entry){
+  if(!entry.images) entry.images=[];
+  const wrap=el(`<div class="dg-block" style="grid-column:1/-1"><div class="dg-label">Moodboard</div><div class="mb-grid"></div></div>`);
+  const grid=wrap.querySelector('.mb-grid');
+  entry.images.forEach(im=>{
+    const tile=el(`<div class="mb-tile"><img src="${im.src}" alt=""><button class="mb-del">✕</button></div>`);
+    tile.querySelector('.mb-del').onclick=()=>{ entry.images=entry.images.filter(x=>x.id!==im.id); save(); };
+    grid.appendChild(tile);
+  });
+  const add=el('<button class="mb-add">+ photo</button>');
+  add.onclick=()=>pickImage(src=>{ entry.images.push({id:uid(),src}); save(); });
+  grid.appendChild(add);
+  return wrap;
+}
+function digestEntryCard(kind, entry, fields, titleWord, open){
+  const card=el(`<div class="dg-card">
+    <button class="dg-head"><span class="dg-title">the ${esc(monthWord(entry.month))} ${titleWord}</span><span class="dg-chev">${open?'▾':'▸'}</span></button>
+    <div class="dg-inner ${open?'':'hidden'}">
+      <div class="dg-grid"></div>
+      <button class="dg-del">remove month</button>
+    </div>
+  </div>`);
+  const grid=card.querySelector('.dg-grid');
+  fields.forEach(f=>grid.appendChild(editBlock(f.label, entry[f.k], v=>{ entry[f.k]=v; persist(); })));
+  grid.appendChild(moodboard(entry));
+  card.querySelector('.dg-head').onclick=()=>{
+    if(digestOpen.has(entry.id)) digestOpen.delete(entry.id); else digestOpen.add(entry.id);
+    renderView();
+  };
+  card.querySelector('.dg-del').onclick=()=>{ if(confirm('Remove '+monthLabel(entry.month)+'?')){ state.digests[kind]=state.digests[kind].filter(x=>x.id!==entry.id); digestOpen.delete(entry.id); save(); } };
+  return card;
+}
+function renderDigest(kind, fields, titleWord, eyebrow){
+  const list=state.digests[kind]||[];
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">${eyebrow}</div><div class="page-title sm">${kind==='design'?'Design digest':'Digest'}</div></div>
+    <div class="dg-add-row">
+      <input type="month" class="dg-month" max="${monthKey()}" value="${monthKey()}">
+      <button class="addbtn dg-addbtn">+ Add month</button>
+    </div>
+    <div class="dg-body"></div>
+  </div>`);
+  const monthInp=wrap.querySelector('.dg-month');
+  wrap.querySelector('.dg-addbtn').onclick=()=>{
+    const mk=monthInp.value; if(!mk) return;
+    if(state.digests[kind].some(e=>e.month===mk)){ digestOpen.add(state.digests[kind].find(e=>e.month===mk).id); renderView(); return; }
+    const entry={id:uid(),month:mk,images:[]};
+    state.digests[kind].push(entry); digestOpen.add(entry.id); digestSeen.add(entry.id); save();
+  };
+  const body=wrap.querySelector('.dg-body');
+  if(!list.length){ body.appendChild(el('<div class="empty">No entries yet. Pick a month above and start filling it in.</div>')); return wrap; }
+  list.slice().sort((a,b)=>b.month.localeCompare(a.month)).forEach(e=>{
+    if(!digestSeen.has(e.id)){ digestSeen.add(e.id); if(e.month===monthKey()) digestOpen.add(e.id); } // current month open by default
+    body.appendChild(digestEntryCard(kind,e,fields,titleWord,digestOpen.has(e.id)));
+  });
+  return wrap;
+}
+function viewDigest(){ return renderDigest('personal', PERSONAL_FIELDS, 'digest', 'A month, in your own words'); }
+function viewDesign(){ return renderDigest('design', DESIGN_FIELDS, 'design log', 'How your craft grew this month'); }
+
+/* ---------- charts ---------- */
+function shiftDay(ds, delta){ const d=new Date(ds+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+delta); return d.toISOString().slice(0,10); }
+function expByDay(numDays){
+  const base=today(); const out=[];
+  for(let i=numDays-1;i>=0;i--){
+    const ds=shiftDay(base,-i);
+    const dayLog=(state.log||[]).filter(e=>e.date===ds);
+    out.push({
+      ds,
+      value: dayLog.reduce((a,e)=>a+(e.exp||0),0),
+      short: new Date(ds+'T00:00:00Z').toLocaleDateString('en-US',{weekday:'short',timeZone:'UTC'}).slice(0,2),
+      day: new Date(ds+'T00:00:00Z').getUTCDate(),
+    });
+  }
+  return out;
+}
+function barChart(data){
+  const W=520,H=150,padX=10,padB=22,padT=12, n=data.length;
+  const max=Math.max(1,...data.map(d=>d.value));
+  const bw=(W-padX*2)/n;
+  let bars='';
+  data.forEach((d,i)=>{
+    const h=Math.round((d.value/max)*(H-padB-padT));
+    const x=padX+i*bw, y=H-padB-h;
+    bars+=`<rect x="${(x+bw*0.16).toFixed(1)}" y="${y}" width="${(bw*0.68).toFixed(1)}" height="${Math.max(h,d.value>0?2:0)}" rx="2.5" style="fill:var(--accent)"><title>${d.ds}: +${d.value} EXP</title></rect>`;
+    if(n<=10) bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-7}" text-anchor="middle" style="fill:var(--ink-faint);font-family:var(--mono);font-size:9px">${d.short}</text>`;
+    else if(d.day===1||i===0||i===n-1) bars+=`<text x="${(x+bw/2).toFixed(1)}" y="${H-7}" text-anchor="middle" style="fill:var(--ink-faint);font-family:var(--mono);font-size:8px">${d.day}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible"><line x1="${padX}" y1="${H-padB}" x2="${W-padX}" y2="${H-padB}" style="stroke:var(--line)"/>${bars}</svg>`;
+}
+
+/* ============================================================
+   RECIPES  (organize + scan a link with Claude)
+   ============================================================ */
+function recipeTagChips(recipe){
+  const wrap=el('<div class="tagpick" style="margin:0 0 10px"></div>');
+  RECIPE_TAGS.forEach(tg=>{
+    const on=(recipe.tags||[]).includes(tg);
+    const chip=el(`<button class="tagchip ${on?'on':''}">${tg}</button>`);
+    chip.onclick=()=>{
+      if(!recipe.tags) recipe.tags=[];
+      if(recipe.tags.includes(tg)) recipe.tags=recipe.tags.filter(x=>x!==tg);
+      else recipe.tags.push(tg);
+      save();
+    };
+    wrap.appendChild(chip);
+  });
+  return wrap;
+}
+function printStatusChips(recipe){
+  const wrap=el('<div class="tagpick" style="margin:0 0 14px;align-items:center">');
+  wrap.appendChild(el('<span style="font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);margin-right:3px">print:</span>'));
+  PRINT_TAGS.forEach(p=>{
+    const on=recipe.printStatus===p.k;
+    const chip=el(`<button class="tagchip ${on?'on':''}">${p.label}</button>`);
+    chip.onclick=()=>{ recipe.printStatus = recipe.printStatus===p.k?'':p.k; save(); };
+    wrap.appendChild(chip);
+  });
+  return wrap;
+}
+function recipeCard(r, open){
+  if(!r.printStatus) r.printStatus='';
+  const card=el(`<div class="dg-card">
+    <button class="dg-head"><span class="dg-title" style="font-size:20px">${esc(r.title||'Untitled recipe')}${r.printStatus?` <span class="tag" style="font-size:9px;vertical-align:middle">${esc((PRINT_TAGS.find(p=>p.k===r.printStatus)||{}).label||'')}</span>`:''}</span><span class="dg-chev">${open?'▾':'▸'}</span></button>
+    <div class="dg-inner ${open?'':'hidden'}"></div>
+  </div>`);
+  const inner=card.querySelector('.dg-inner');
+  const titleBlock=el('<div class="dg-block" style="margin-bottom:14px"><div class="dg-label">Title</div><div class="dg-edit" contenteditable="true" spellcheck="false" data-ph="Recipe name"></div></div>');
+  const te=titleBlock.querySelector('.dg-edit'); te.textContent=r.title||'';
+  te.onblur=()=>{ r.title=te.innerText.trim()||'Untitled recipe'; persist(); };
+  inner.appendChild(titleBlock);
+  inner.appendChild(recipeTagChips(r));
+  inner.appendChild(printStatusChips(r));
+  const grid=el('<div class="dg-grid" style="grid-template-columns:1fr 1fr"></div>');
+  grid.appendChild(editBlock('Ingredients', r.ingredients, v=>{ r.ingredients=v; persist(); }));
+  grid.appendChild(editBlock('Steps', r.steps, v=>{ r.steps=v; persist(); }));
+  inner.appendChild(grid);
+  const src=el(`<div class="dg-block" style="margin-top:16px"><div class="dg-label">Source</div><input class="dg-month" style="width:100%;font-size:12px" placeholder="where it's from (link, cookbook, who gave it to you)" value="${esc(r.source||'')}"></div>`);
+  const si=src.querySelector('input'); si.onchange=()=>{ r.source=si.value.trim(); persist(); };
+  inner.appendChild(src);
+  if(r.source && /^https?:\/\//.test(r.source)){
+    inner.appendChild(el(`<a href="${esc(r.source)}" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:10.5px;color:var(--accent);text-decoration:none;display:inline-block;margin-top:8px">↗ open source</a>`));
+  }
+  const del=el('<button class="dg-del">remove recipe</button>');
+  del.onclick=()=>{ if(confirm('Remove '+(r.title||'this recipe')+'?')){ state.recipes=state.recipes.filter(x=>x.id!==r.id); recipeOpen.delete(r.id); save(); } };
+  inner.appendChild(del);
+  card.querySelector('.dg-head').onclick=()=>{ if(recipeOpen.has(r.id)) recipeOpen.delete(r.id); else recipeOpen.add(r.id); renderView(); };
+  return card;
+}
+
+/* ---------- fridge ---------- */
+function fridgeList(){ return (state.fridge||'').split(/[\n,]/).map(s=>s.trim().toLowerCase()).filter(s=>s.length>=2); }
+function matchRecipe(r){
+  const lines=(r.ingredients||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length) return null;
+  const have=fridgeList();
+  let got=0; const missing=[];
+  lines.forEach(line=>{
+    const low=line.toLowerCase();
+    if(have.some(tok=>low.includes(tok))) got++; else missing.push(line);
+  });
+  return {total:lines.length, got, missing, ratio:got/lines.length};
+}
+async function suggestFromFridge(){
+  const items=fridgeList();
+  if(!items.length){ toast('List a few ingredients first'); return; }
+  fridgeSuggestLoading=true; fridgeSuggestText=''; renderView();
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-6',max_tokens:1000,
+      messages:[{role:'user',content:`I have these ingredients on hand: ${items.join(', ')}.\n\nSuggest 3 recipes I could realistically make. For each, give: the recipe name, which of my ingredients it uses, and a short list of what I'd still need to buy. Keep it concise and warm. Plain text only — no markdown headers or asterisks.`}],
+      tools:[{type:'web_search_20250305',name:'web_search'}]
+    })});
+    const data=await res.json();
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    fridgeSuggestText=text||'No ideas came back — try different ingredients.';
+  }catch(e){ fridgeSuggestText='Couldn’t reach the recipe helper right now — check your connection and try again.'; }
+  fridgeSuggestLoading=false; renderView();
+}
+function fridgePanel(){
+  const card=el(`<div class="dg-card" style="margin-bottom:22px">
+    <button class="dg-head"><span class="dg-title" style="font-size:19px">🧊 What's in my fridge</span><span class="dg-chev">${fridgeOpen?'▾':'▸'}</span></button>
+    <div class="dg-inner ${fridgeOpen?'':'hidden'}"></div>
+  </div>`);
+  card.querySelector('.dg-head').onclick=()=>{ fridgeOpen=!fridgeOpen; renderView(); };
+  const inner=card.querySelector('.dg-inner');
+  const fb=el('<div class="dg-block"><div class="dg-label">Ingredients I have (one per line or comma-separated)</div><div class="dg-edit" contenteditable="true" spellcheck="false" data-ph="eggs, spinach, feta, pasta…" style="min-height:54px"></div></div>');
+  const fe=fb.querySelector('.dg-edit'); fe.innerText=state.fridge||'';
+  fe.onblur=()=>{ state.fridge=fe.innerText.trim(); persist(); renderView(); };
+  inner.appendChild(fb);
+
+  const have=fridgeList();
+  if(have.length){
+    // match saved recipes
+    const matches=state.recipes.map(r=>({r, m:matchRecipe(r)})).filter(x=>x.m && x.m.got>0).sort((a,b)=>b.m.ratio-a.m.ratio);
+    const mh=el('<div style="margin-top:16px"><div class="dg-label">From your saved recipes</div></div>');
+    if(!matches.length) mh.appendChild(el('<div class="empty" style="padding:4px 0">No saved recipes match yet. Add some recipes, or try the web suggestions below.</div>'));
+    matches.slice(0,6).forEach(({r,m})=>{
+      const item=el(`<div class="fridge-match">
+        <div style="display:flex;justify-content:space-between;gap:10px"><strong style="font-weight:500">${esc(r.title||'Untitled')}</strong><span class="due" style="color:${m.ratio>=0.8?'var(--good)':'var(--ink-faint)'}">have ${m.got}/${m.total}</span></div>
+        ${m.missing.length?`<div style="font-size:12px;color:var(--ink-soft);margin-top:3px">need: ${m.missing.map(esc).join(', ')}</div>`:'<div style="font-size:12px;color:var(--good);margin-top:3px">you have everything ✓</div>'}
+      </div>`);
+      item.onclick=()=>{ recipeOpen.add(r.id); renderView(); setTimeout(()=>{},0); };
+      mh.appendChild(item);
+    });
+    inner.appendChild(mh);
+
+    // web suggestions
+    const sg=el('<div style="margin-top:18px"></div>');
+    const btn=el(`<button class="addbtn">✨ Suggest new recipes from these</button>`);
+    btn.onclick=suggestFromFridge;
+    sg.appendChild(btn);
+    if(fridgeSuggestLoading) sg.appendChild(el('<div class="empty" style="padding:8px 0">Thinking up recipes you could make…</div>'));
+    else if(fridgeSuggestText) sg.appendChild(el(`<div class="fridge-suggest">${esc(fridgeSuggestText)}</div>`));
+    inner.appendChild(sg);
+  } else {
+    inner.appendChild(el('<div class="empty" style="padding:8px 0 0">List what you have above, and I\u2019ll match it to your saved recipes and suggest new ones.</div>'));
+  }
+  return card;
+}
+
+function viewRecipes(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Everything scattered across phone, notes & cookbooks — in one place</div><div class="page-title sm">Recipes</div></div>
+    <div class="rc-fridge"></div>
+    <div class="rc-filter"></div>
+    <button class="addbtn rc-blank" style="margin-bottom:18px">+ Add recipe</button>
+    <div class="rc-body"></div>
+  </div>`);
+  wrap.querySelector('.rc-fridge').appendChild(fridgePanel());
+  wrap.querySelector('.rc-blank').onclick=()=>{ const r={id:uid(),title:'New recipe',tags:[],printStatus:'',ingredients:'',steps:'',source:''}; state.recipes.unshift(r); recipeOpen.add(r.id); recipeSeen.add(r.id); save(); };
+
+  // filter chips (category tags + print statuses in use)
+  const fl=wrap.querySelector('.rc-filter');
+  const usedTags=RECIPE_TAGS.filter(t=>state.recipes.some(r=>(r.tags||[]).includes(t)));
+  const usedPrints=PRINT_TAGS.filter(p=>state.recipes.some(r=>r.printStatus===p.k));
+  if(usedTags.length||usedPrints.length){
+    const mk=(label,val)=>{ const chip=el(`<button class="tagchip ${recipeFilter===val?'on':''}">${esc(label)}</button>`); chip.onclick=()=>{ recipeFilter=recipeFilter===val?null:val; renderView(); }; return chip; };
+    fl.appendChild(mk('all',null));
+    usedTags.forEach(t=>fl.appendChild(mk(t,t)));
+    if(usedPrints.length){ fl.appendChild(el('<span style="width:1px;background:var(--line);margin:0 3px"></span>')); usedPrints.forEach(p=>fl.appendChild(mk(p.label,'print:'+p.k))); }
+  }
+
+  let list=state.recipes.slice();
+  if(recipeFilter){
+    if(recipeFilter.startsWith('print:')){ const ps=recipeFilter.slice(6); list=list.filter(r=>r.printStatus===ps); }
+    else list=list.filter(r=>(r.tags||[]).includes(recipeFilter));
+  }
+  const body=wrap.querySelector('.rc-body');
+  if(!state.recipes.length){ body.appendChild(el('<div class="empty">No recipes yet. Add one and fill in the ingredients & steps.</div>')); return wrap; }
+  if(!list.length){ body.appendChild(el('<div class="empty">No recipes with that tag.</div>')); return wrap; }
+  list.forEach(r=>{ if(!recipeSeen.has(r.id)) recipeSeen.add(r.id); body.appendChild(recipeCard(r, recipeOpen.has(r.id))); });
+  return wrap;
+}
+
+/* ============================================================
+   SKILLS  (rubric: what counts for each skill)
+   ============================================================ */
+function openSkillGuide(){
+  const m=el(`<div class="modal" style="max-width:560px"><h3>What counts for each skill</h3><div class="sg-list"></div><div class="modal-actions"><button class="btn primary" id="c">Got it</button></div></div>`);
+  const list=m.querySelector('.sg-list');
+  SKILLS.forEach(s=>{
+    const block=el(`<div class="sg-skill"><div class="sg-skill-name">${s}</div></div>`);
+    (state.skillNotes[s]||[]).forEach(a=>{
+      block.appendChild(el(`<div class="sg-area"><span class="sg-area-name">${esc(a.area)}</span>${a.desc?`<span class="sg-area-desc"> — ${esc(a.desc)}</span>`:''}</div>`));
+    });
+    list.appendChild(block);
+  });
+  m.querySelector('#c').onclick=closeModal;
+  showModal(m);
+}
+function viewSkills(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Your rubric · what counts where</div><div class="page-title sm">Skills</div></div>
+    <div class="sk-body" style="max-width:640px"></div>
+  </div>`);
+  const body=wrap.querySelector('.sk-body');
+  SKILLS.forEach(s=>{
+    const sd=state.skills[s]; const need=expNeeded(sd.level); const pct=Math.round(sd.exp/need*100);
+    const card=el(`<div class="qcard" style="margin-bottom:16px">
+      <div class="skl-head">
+        <span class="skl-name">${s}</span>
+        <span class="skill-lvl">Lv ${sd.level} · ${sd.exp}/${need}</span>
+      </div>
+      <div class="skill-bar" style="margin:8px 0 14px"><div class="skill-fill" style="width:${pct}%"></div></div>
+      <div class="skl-areas"></div>
+      <div class="add-inline" style="margin-top:6px"><span style="color:var(--ink-faint)">+</span><input placeholder="Add a sub-area…"></div>
+    </div>`);
+    const areas=card.querySelector('.skl-areas');
+    (state.skillNotes[s]||[]).forEach((a,i)=>{
+      const row=el(`<div class="skl-area">
+        <div class="skl-area-name" contenteditable="true" spellcheck="false">${esc(a.area)}</div>
+        <div class="skl-area-desc" contenteditable="true" spellcheck="false" data-ph="what counts…">${esc(a.desc)}</div>
+        <button class="x-del">✕</button>
+      </div>`);
+      const nm=row.querySelector('.skl-area-name'); nm.onblur=()=>{ a.area=nm.innerText.trim()||a.area; persist(); };
+      const ds=row.querySelector('.skl-area-desc'); ds.onblur=()=>{ a.desc=ds.innerText.trim(); persist(); };
+      row.querySelector('.x-del').onclick=()=>{ state.skillNotes[s].splice(i,1); save(); };
+      areas.appendChild(row);
+    });
+    const addInp=card.querySelector('.add-inline input');
+    addInp.onkeydown=e=>{ if(e.key==='Enter'&&addInp.value.trim()){ state.skillNotes[s].push({area:addInp.value.trim(),desc:''}); save(); } };
+    body.appendChild(card);
+  });
+  return wrap;
+}
+
+function viewStats(){
+  const c=state.character;
+  const totalStreak=state.routines.reduce((a,r)=>a+r.streak,0);
+  const activeStreaks=state.routines.filter(r=>r.streak>0).length;
+  const questsTodo=state.quests.reduce((a,q)=>a+q.todos.filter(t=>!t.done).length,0);
+  const skillsTotal=SKILLS.reduce((a,s)=>a+state.skills[s].level,0);
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Overview</div><div class="page-title sm">Statistics</div></div>
+    <div class="statgrid">
+      <div class="statbox"><div class="num">${c.level}</div><div class="lbl">Character level</div></div>
+      <div class="statbox"><div class="num">${c.coins}</div><div class="lbl">Coins in hand</div></div>
+      <div class="statbox"><div class="num">${activeStreaks}</div><div class="lbl">Active streaks</div></div>
+      <div class="statbox"><div class="num">${totalStreak}</div><div class="lbl">Total streak days</div></div>
+      <div class="statbox"><div class="num">${questsTodo}</div><div class="lbl">Open quest steps</div></div>
+      <div class="statbox"><div class="num">${skillsTotal}</div><div class="lbl">Combined skill levels</div></div>
+    </div>
+    <div class="panel" style="max-width:560px">
+      <div class="panel-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>EXP earned · ${chartRange===7?'last 7 days':'last 30 days'}</span>
+        <span class="seg chart-seg" style="width:auto"><button data-r="7" class="${chartRange===7?'on':''}">Week</button><button data-r="30" class="${chartRange===30?'on':''}">Month</button></span>
+      </div>
+      <div class="chart-host"></div>
+      <div class="chart-totals" style="font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:.04em;margin-top:10px"></div>
+    </div>
+    <div class="panel" style="max-width:480px"><div class="panel-title">Skills breakdown</div><div class="sk"></div></div>
+    <div class="section-head" style="margin-top:30px;max-width:560px"><span class="eyebrow">By day</span></div>
+    <div class="bydays" style="max-width:560px"></div>
+  </div>`);
+  // chart
+  const data=expByDay(chartRange);
+  const host=wrap.querySelector('.chart-host');
+  const totalExp=data.reduce((a,d)=>a+d.value,0);
+  if(!(state.log||[]).length){
+    host.appendChild(el('<div class="empty">No history yet — as you check things off, bars will grow here day by day.</div>'));
+  } else {
+    host.innerHTML=barChart(data);
+    wrap.querySelector('.chart-totals').textContent=`+${totalExp} EXP over ${chartRange} days · avg ${Math.round(totalExp/chartRange)}/day`;
+  }
+  wrap.querySelectorAll('.chart-seg button').forEach(b=>b.onclick=()=>{ chartRange=parseInt(b.dataset.r); renderView(); });
+  const sk=wrap.querySelector('.sk');
+  SKILLS.forEach(s=>{
+    const sd=state.skills[s];const need=expNeeded(sd.level);const pct=Math.round(sd.exp/need*100);
+    sk.appendChild(el(`<div class="skill-row"><div class="skill-head"><span class="skill-name">${s}</span><span class="skill-lvl">Lv ${sd.level}</span></div><div class="skill-bar"><div class="skill-fill" style="width:${pct}%"></div></div></div>`));
+  });
+
+  // group log by day
+  const byday=wrap.querySelector('.bydays');
+  const log=state.log||[];
+  if(!log.length){
+    byday.appendChild(el('<div class="empty">Your day-by-day record starts now. As you check things off, each day will appear here with everything you did and the EXP it earned.</div>'));
+    return wrap;
+  }
+  const groups={};
+  log.forEach(e=>{ (groups[e.date]=groups[e.date]||[]).push(e); });
+  const dates=Object.keys(groups).sort().reverse();
+  const fmt=ds=>{
+    const d=new Date(ds+'T00:00:00');
+    if(ds===today()) return 'Today';
+    if(ds===yesterday()) return 'Yesterday';
+    return d.toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  };
+  const kindLabel={routine:'routine',task:'task',quest:'step',questDone:'quest',capture:'capture',spend:'market',resist:'resist',bossWin:'victory'};
+  dates.forEach((ds,idx)=>{
+    const items=groups[ds].slice().sort((a,b)=>b.ts-a.ts);
+    const exp=items.reduce((a,e)=>a+(e.exp||0),0);
+    const earned=items.reduce((a,e)=>a+(e.coins||0),0);
+    const spent=items.reduce((a,e)=>a+(e.spent||0),0);
+    const doneCount=items.filter(e=>e.kind!=='spend').length;
+    const open=idx===0; // today/most recent expanded by default
+    const card=el(`<div class="daycard">
+      <button class="dayhead">
+        <span class="daydate">${fmt(ds)}</span>
+        <span class="daytotals"><span style="color:var(--accent)">+${exp} EXP</span>${earned?` · <span style="color:var(--gold)">+${earned}</span>`:''}${spent?` · <span style="color:var(--gold)">−${spent}</span>`:''} · ${doneCount} done</span>
+      </button>
+      <div class="dayitems ${open?'':'hidden'}"></div>
+    </div>`);
+    const di=card.querySelector('.dayitems');
+    items.forEach(e=>{
+      const right = e.kind==='spend'
+        ? `<span class="dayitem-x" style="color:var(--gold)">−${e.spent} coins</span>`
+        : `<span class="dayitem-x">+${e.exp||0}${e.coins?` · +${e.coins}c`:''}${e.skill?` · ${esc(e.skill)}`:''}</span>`;
+      di.appendChild(el(`<div class="dayitem">
+        <span class="dayitem-l"><span class="tag" style="font-size:9px">${kindLabel[e.kind]||'done'}</span> ${esc(e.label)}</span>
+        ${right}
+      </div>`));
+    });
+    const head=card.querySelector('.dayhead');
+    head.onclick=()=>{ di.classList.toggle('hidden'); head.classList.toggle('open'); };
+    if(open) head.classList.add('open');
+    byday.appendChild(card);
+  });
+  return wrap;
+}
+
+function viewMarket(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">You have ${state.character.coins} coins</div><div class="page-title sm">Market</div></div>
+    <div class="mgrid"></div>
+    <button class="addbtn" style="margin-top:18px">+ Add reward</button>
+  </div>`);
+  const grid=wrap.querySelector('.mgrid');
+  if(!state.market.length) grid.appendChild(el('<div class="empty">No rewards yet — add the treats you actually want.</div>'));
+  state.market.forEach(m=>{
+    const can=state.character.coins>=m.price;
+    const card=el(`<div class="mcard">
+      <div class="mname">${esc(m.name)}</div>
+      <div class="mfoot">
+        <span class="price"><span class="dot"></span>${m.price}</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <button class="buy" ${can?'':'disabled'}>Redeem</button>
+          <button class="x-del" style="opacity:.5">✕</button>
+        </span>
+      </div>
+    </div>`);
+    card.querySelector('.buy').onclick=()=>{
+      if(state.character.coins>=m.price){ state.character.coins-=m.price; toast('Redeemed: '+m.name,'-'+m.price); logEvent('Redeemed: '+m.name,{spent:m.price,kind:'spend'}); save(); }
+    };
+    card.querySelector('.x-del').onclick=()=>{state.market=state.market.filter(x=>x.id!==m.id);save()};
+    grid.appendChild(card);
+  });
+  wrap.querySelector('.addbtn').onclick=addRewardModal;
+  return wrap;
+}
+
+function viewCapture(){
+  const wrap=el(`<div>
+    <div class="page-head"><div class="eyebrow">Where stray thoughts are tucked away</div><div class="page-title sm">The Burrow</div></div>
+    <button class="addbtn" style="margin-bottom:18px">✦ Capture something</button>
+    <div class="typefilters" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px"></div>
+    <div class="filters" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px"></div>
+    <div class="body" style="max-width:600px"></div>
+  </div>`);
+  wrap.querySelector('.addbtn').onclick=openCapture;
+  const body=wrap.querySelector('.body');
+
+  // TYPE filter (thought / quote / bookmark + any legacy types present)
+  const types=[...new Set(state.captures.map(c=>c.type))];
+  const orderedTypes=['thought','quote','bookmark'].filter(t=>types.includes(t)).concat(types.filter(t=>!['thought','quote','bookmark'].includes(t)));
+  const tf=wrap.querySelector('.typefilters');
+  if(orderedTypes.length){
+    const mkT=(label,val)=>{
+      const chip=el(`<button class="tagchip ${captureType===val?'on':''}">${esc(label)}</button>`);
+      chip.onclick=()=>{ captureType=captureType===val?null:val; renderView(); };
+      return chip;
+    };
+    tf.appendChild(mkT('all types',null));
+    orderedTypes.forEach(t=>tf.appendChild(mkT(t,t)));
+  }
+
+  // TAG filter
+  const allTags=[...new Set(state.captures.flatMap(c=>c.tags||[]))];
+  const filt=wrap.querySelector('.filters');
+  if(allTags.length){
+    const mk=(label,val)=>{
+      const chip=el(`<button class="tag" style="cursor:pointer;border:1px solid ${captureFilter===val?'var(--accent)':'transparent'};color:${captureFilter===val?'var(--accent)':'var(--ink-soft)'}">${esc(label)}</button>`);
+      chip.onclick=()=>{captureFilter=captureFilter===val?null:val;renderView()};
+      return chip;
+    };
+    filt.appendChild(mk('all tags',null));
+    allTags.forEach(t=>filt.appendChild(mk('#'+t,t)));
+  }
+
+  let list=state.captures.slice().reverse();
+  if(captureType) list=list.filter(c=>c.type===captureType);
+  if(captureFilter) list=list.filter(c=>(c.tags||[]).includes(captureFilter));
+
+  if(!list.length) body.appendChild(el('<div class="empty">Nothing here yet. Use Capture whenever an idea, quote, or bookmark pops up.</div>'));
+  list.forEach(c=>{
+    if(!c.tags) c.tags=[];
+    const row=el(`<div class="row">
+      <span class="tag" style="margin-top:2px">${esc(c.type)}</span>
+      <div class="row-body">
+        <div class="row-title cap-edit" contenteditable="true" spellcheck="false">${esc(c.text)}</div>
+        <div class="row-meta">
+          <span style="font-family:var(--mono);font-size:9.5px;color:var(--ink-faint)">${esc(c.date)}</span>
+          <span class="ctags" style="display:flex;gap:5px;flex-wrap:wrap"></span>
+          <input class="ctaginput" placeholder="+ tag" style="border:none;background:none;outline:none;font-family:var(--mono);font-size:10px;color:var(--ink-faint);width:54px">
+        </div>
+      </div>
+      <button class="x-del">✕</button>
+    </div>`);
+    const txtEl=row.querySelector('.cap-edit');
+    txtEl.onblur=()=>{ const v=txtEl.innerText.trim(); if(v && v!==c.text){ c.text=v; persist(); } else if(!v){ txtEl.innerText=c.text; } };
+    const ct=row.querySelector('.ctags');
+    c.tags.forEach((tg,i)=>{
+      const chip=el(`<span class="tag" style="font-size:9px">${esc(tg)} <span style="cursor:pointer">✕</span></span>`);
+      chip.querySelector('span').onclick=()=>{c.tags.splice(i,1);save()};
+      ct.appendChild(chip);
+    });
+    const ci=row.querySelector('.ctaginput');
+    ci.onkeydown=e=>{ if(e.key==='Enter'&&ci.value.trim()){ c.tags.push(ci.value.trim());save(); } };
+    row.querySelector('.x-del').onclick=()=>{state.captures=state.captures.filter(x=>x.id!==c.id);save()};
+    body.appendChild(row);
+  });
+  return wrap;
+}
+
+/* ---------- search results ---------- */
+function viewSearch(q){
+  const term=q.toLowerCase();
+  const hits=[];
+  state.routines.forEach(r=>{if(r.name.toLowerCase().includes(term))hits.push(['Routine',r.name])});
+  state.tasks.forEach(t=>{if(t.name.toLowerCase().includes(term))hits.push(['Task',t.name])});
+  state.quests.forEach(qu=>{if(qu.name.toLowerCase().includes(term))hits.push(['Quest',qu.name]);qu.todos.forEach(t=>{if(t.text.toLowerCase().includes(term))hits.push(['Step',t.text])})});
+  state.captures.forEach(c=>{
+    const inTags=(c.tags||[]).some(tg=>tg.toLowerCase().includes(term));
+    if(c.text.toLowerCase().includes(term)||inTags) hits.push(['Inbox',c.text+((c.tags&&c.tags.length)?'  ·  #'+c.tags.join(' #'):'')]);
+  });
+  [...state.library.reading,...state.library.watching,...(state.library.playing||[])].forEach(x=>{if(x.title.toLowerCase().includes(term))hits.push(['Library',x.title])});
+  state.market.forEach(m=>{if(m.name.toLowerCase().includes(term))hits.push(['Reward',m.name])});
+  const wrap=el(`<div><div class="page-head"><div class="eyebrow">Results for "${esc(q)}"</div><div class="page-title sm">Search</div></div><div class="body" style="max-width:600px"></div></div>`);
+  const body=wrap.querySelector('.body');
+  if(!hits.length) body.appendChild(el('<div class="empty">Nothing found.</div>'));
+  hits.forEach(([k,v])=>body.appendChild(el(`<div class="row"><span class="tag" style="margin-top:2px">${k}</span><div class="row-body"><div class="row-title">${esc(v)}</div></div></div>`)));
+  return wrap;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+function showModal(node){const o=$('#overlay');o.innerHTML='';o.appendChild(node);o.classList.add('show');o.onclick=e=>{if(e.target===o)closeModal()}}
+function closeModal(){$('#overlay').classList.remove('show');$('#overlay').innerHTML=''}
+
+function openCapture(){
+  let type='thought';
+  const known=[...new Set((state.captures||[]).flatMap(c=>c.tags||[]))];
+  const selected=new Set();
+  const m=el(`<div class="modal">
+    <h3>Capture</h3>
+    <div class="field"><label>Type</label><div class="seg">
+      <button data-t="thought" class="on">Thought</button><button data-t="quote">Quote</button><button data-t="bookmark">Bookmark</button>
+    </div></div>
+    <div class="field"><label>What's on your mind</label><textarea id="capTxt" placeholder="Type it before it's gone…"></textarea></div>
+    <div class="field"><label>Tags (optional)</label>
+      ${known.length?'<div class="tagpick"></div>':''}
+      <input id="capTags" placeholder="${known.length?'add a new tag…':'comma, separated — or skip'}">
+    </div>
+    <div class="modal-actions"><button class="btn ghost" id="capCancel">Cancel</button><button class="btn primary" id="capSave">Capture</button></div>
+  </div>`);
+  m.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{m.querySelectorAll('.seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');type=b.dataset.t});
+  // reusable tag chips
+  const pick=m.querySelector('.tagpick');
+  if(pick) known.forEach(tg=>{
+    const chip=el(`<button class="tagchip">${esc(tg)}</button>`);
+    chip.onclick=()=>{ if(selected.has(tg)){selected.delete(tg);chip.classList.remove('on');} else {selected.add(tg);chip.classList.add('on');} };
+    pick.appendChild(chip);
+  });
+  m.querySelector('#capCancel').onclick=closeModal;
+  const doSave=()=>{
+    const v=m.querySelector('#capTxt').value.trim();
+    if(!v){ m.querySelector('#capTxt').focus(); return; }
+    const typed=m.querySelector('#capTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const tags=[...new Set([...selected, ...typed])];
+    state.captures.push({id:uid(),text:v,type,tags,date:today()});
+    closeModal(); save();
+  };
+  m.querySelector('#capSave').onclick=doSave;
+  // Enter in the tag field saves; Cmd/Ctrl+Enter in the textarea saves
+  m.querySelector('#capTags').onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); doSave(); } };
+  m.querySelector('#capTxt').onkeydown=e=>{ if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){ e.preventDefault(); doSave(); } };
+  showModal(m);
+  setTimeout(()=>m.querySelector('#capTxt').focus(),50);
+}
+
+function addRoutineModal(){
+  const m=el(`<div class="modal">
+    <h3>New routine</h3>
+    <div class="field"><label>Name</label><input id="rName" placeholder="e.g. Wash the curtains"></div>
+    <div class="field"><label>How often</label><select id="rFreq">${Object.entries(FREQ).map(([k,v])=>`<option value="${k}">${v.label} · +${v.exp} EXP</option>`).join('')}</select></div>
+    <div class="field" id="timeField"><label>Time of day</label><select id="rTime"><option value="morning">Morning</option><option value="afternoon">Afternoon</option><option value="evening">Evening</option></select></div>
+    <div class="field"><label>Skill it builds <button type="button" class="skillq" onclick="openSkillGuide()">?</button></label><select id="rSkill">${SKILLS.map(s=>`<option>${s}</option>`).join('')}</select></div>
+    <div class="modal-actions"><button class="btn ghost" id="c">Cancel</button><button class="btn primary" id="s">Add</button></div>
+  </div>`);
+  const freqSel=m.querySelector('#rFreq');
+  const timeField=m.querySelector('#timeField');
+  freqSel.onchange=()=>{ timeField.style.display = freqSel.value==='daily' ? '' : 'none'; };
+  m.querySelector('#c').onclick=closeModal;
+  m.querySelector('#s').onclick=()=>{
+    const n=m.querySelector('#rName').value.trim();if(!n)return;
+    const freq=freqSel.value;
+    state.routines.push({id:uid(),name:n,freq,time:m.querySelector('#rTime').value,skill:m.querySelector('#rSkill').value,streak:0,last:'',earnedOn:'',prevLast:''});
+    closeModal();save();
+  };
+  showModal(m);setTimeout(()=>m.querySelector('#rName').focus(),50);
+}
+
+function addRewardModal(){
+  const m=el(`<div class="modal">
+    <h3>New reward</h3>
+    <div class="field"><label>Reward</label><input id="mName" placeholder="e.g. Coffee shop afternoon"></div>
+    <div class="field"><label>Price in coins</label><input id="mPrice" type="number" value="40"></div>
+    <p class="hint">Rule of thumb: cheapest reward ≈ 1–2 good days, biggest ≈ 1–2 good weeks.</p>
+    <div class="modal-actions"><button class="btn ghost" id="c">Cancel</button><button class="btn primary" id="s">Add</button></div>
+  </div>`);
+  m.querySelector('#c').onclick=closeModal;
+  m.querySelector('#s').onclick=()=>{
+    const n=m.querySelector('#mName').value.trim();const p=parseInt(m.querySelector('#mPrice').value)||10;
+    if(!n)return;state.market.push({id:uid(),name:n,price:p});closeModal();save();
+  };
+  showModal(m);setTimeout(()=>m.querySelector('#mName').focus(),50);
+}
+
+const AVATARS=['🦊','🐺','🦉','🐉','🦌','🐈','🦅','🌿','🔥','🌙','⚔️','📖','🎯','🦁','🐢','✦'];
+function openSettings(){
+  const c=state.character;
+  const m=el(`<div class="modal">
+    <h3>Your character</h3>
+    <div class="field"><label>Name</label><input id="sName" value="${esc(c.name)}"></div>
+    <div class="field"><label>Avatar</label><div class="emoji-grid">${AVATARS.map(a=>`<button data-a="${a}" class="${a===c.avatar?'on':''}">${a}</button>`).join('')}</div></div>
+    <div class="field"><label>Backup & move between devices</label>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="export" style="flex:1">⬇ Export backup</button>
+        <button class="btn" id="import" style="flex:1">⬆ Import backup</button>
+      </div>
+      <p class="hint" style="margin-top:6px">Export saves a file with everything. Import it on another device to move your data over.</p>
+    </div>
+    ${CLOUD?'<div class="field"><button class="btn" id="signout" style="width:100%">Sign out</button><p class="hint" style="margin-top:6px">Synced to your account across devices.</p></div>':''}
+    <div class="modal-actions" style="justify-content:space-between">
+      <button class="btn danger" id="reset">Reset all data</button>
+      <span><button class="btn ghost" id="c">Cancel</button><button class="btn primary" id="s">Save</button></span>
+    </div>
+  </div>`);
+  let chosen=c.avatar;
+  m.querySelectorAll('.emoji-grid button').forEach(b=>b.onclick=()=>{m.querySelectorAll('.emoji-grid button').forEach(x=>x.classList.remove('on'));b.classList.add('on');chosen=b.dataset.a});
+  m.querySelector('#export').onclick=exportData;
+  m.querySelector('#import').onclick=importData;
+  if(m.querySelector('#signout')) m.querySelector('#signout').onclick=signOut;
+  m.querySelector('#c').onclick=closeModal;
+  m.querySelector('#s').onclick=()=>{c.name=m.querySelector('#sName').value.trim()||c.name;c.avatar=chosen;closeModal();save()};
+  m.querySelector('#reset').onclick=async()=>{
+    if(confirm('Erase everything and start fresh? This cannot be undone.')){
+      state=defaultState();await persist();closeModal();renderAll();
+    }
+  };
+  showModal(m);
+}
+
+/* ============================================================
+   RENDER + SAVE
+   ============================================================ */
+const VIEWS={today:viewToday,tasks:viewTasks,routines:viewRoutines,quests:viewQuests,fights:viewFights,library:viewLibrary,digest:viewDigest,design:viewDesign,recipes:viewRecipes,skills:viewSkills,stats:viewStats,market:viewMarket,capture:viewCapture};
+function renderView(){
+  const v=$('#view');v.innerHTML='';
+  const sq=$('#searchInput').value.trim();
+  if(activeTab==='__search' && sq){ v.appendChild(viewSearch(sq)); return; }
+  v.appendChild((VIEWS[activeTab]||viewToday)());
+}
+function renderAll(){ renderNav(); renderChar(); renderView(); }
+async function save(){ await persist(); renderChar(); renderView(); }
+
+/* search */
+function initSearch(){
+  const inp=$('#searchInput');
+  inp.oninput=()=>{
+    if(inp.value.trim()){ activeTab='__search'; }
+    else { activeTab='today'; }
+    renderNav(); renderView();
+  };
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+function migrateState(){
+  // migrate older saves / fill any missing shape
+  if(!state.appName) state.appName='Foxglove';
+  if(!state.tasks) state.tasks=[];
+  // convert legacy Top 3 slots into real starred tasks
+  if(state.top3){
+    state.top3.forEach(s=>{ if(s && s.text && s.text.trim()) state.tasks.push({id:uid(),name:s.text.trim(),skill:'Compass',done:!!s.done,top:true}); });
+    delete state.top3;
+  }
+  state.tasks.forEach(t=>{ if(t.top===undefined) t.top=false; if(!t.skill) t.skill='Compass'; if(t.earned===undefined) t.earned=!!t.done; if(!t.priority) t.priority='medium'; });
+  if(!state.library) state.library={reading:[],watching:[],playing:[]};
+  if(!state.library.playing) state.library.playing=[];
+  ['reading','watching','playing'].forEach(k=>{
+    (state.library[k]||[]).forEach(x=>{
+      if(!x.status) x.status = (x.current===false ? 'done' : 'current');
+      if(x.finishedOn===undefined) x.finishedOn = x.status==='done' ? today() : null;
+    });
+  });
+  if(!state.captures) state.captures=[];
+  state.captures.forEach(c=>{ if(!c.tags) c.tags=[]; });
+  if(!state.quests) state.quests=[];
+  state.quests.forEach(q=>{
+    if(q.earnedComplete===undefined) q.earnedComplete = q.todos.length>0 && q.todos.every(x=>x.done);
+    if(q.lastTouched===undefined) q.lastTouched=today();
+    q.todos.forEach(t=>{ if(!t.skill) t.skill='Compass'; if(t.earned===undefined) t.earned=!!t.done; });
+  });
+  if(!state.routines) state.routines=[];
+  state.routines.forEach(r=>{ if(r.earnedOn===undefined) r.earnedOn = (r.last===today()? today() : ''); if(!r.freq) r.freq='daily'; if(r.prevLast===undefined) r.prevLast=''; });
+  if(!state.log) state.log=[];
+  if(!state.character) state.character={name:'Mira',avatar:'🦊',level:1,exp:0,coins:20,hp:100,maxHp:100};
+  if(state.character.hp==null) state.character.hp=100;
+  if(state.character.maxHp==null) state.character.maxHp=100;
+  if(!state.bosses) state.bosses=[];
+  state.bosses.forEach(b=>{ if(b.acted===undefined) b.acted=''; if(b.actedType===undefined) b.actedType=''; if(b.earnedOn===undefined) b.earnedOn=''; if(b.defeated===undefined) b.defeated=false; if(b.defeatedOn===undefined) b.defeatedOn=null; if(!b.emoji) b.emoji='👾'; if(!b.skill) b.skill='Spiritual'; if(b.slipStreak===undefined) b.slipStreak=0; if(b.lastSlipDay===undefined) b.lastSlipDay=''; });
+  if(!state.digests) state.digests={personal:[],design:[]};
+  if(!state.digests.personal) state.digests.personal=[];
+  if(!state.digests.design) state.digests.design=[];
+  state.digests.personal.concat(state.digests.design).forEach(e=>{ if(!e.images) e.images=[]; });
+  if(!state.recipes) state.recipes=[];
+  state.recipes.forEach(r=>{ if(r.printStatus===undefined) r.printStatus=''; if(!r.tags) r.tags=[]; delete r._loading; });
+  if(state.fridge===undefined) state.fridge='';
+  // rename skills (Physical→Health, Intellect→Mind, Spiritual→Soul, Core→Compass) and add Fortitude
+  const remappedSkills={}; SKILLS.forEach(s=>remappedSkills[s]={level:1,exp:0});
+  Object.entries(state.skills||{}).forEach(([k,v])=>{ const nk=renSkill(k); if(remappedSkills[nk]) remappedSkills[nk]=v; });
+  state.skills=remappedSkills;
+  state.tasks.forEach(t=>t.skill=renSkill(t.skill));
+  state.routines.forEach(r=>r.skill=renSkill(r.skill));
+  state.quests.forEach(q=>q.todos.forEach(t=>t.skill=renSkill(t.skill)));
+  state.bosses.forEach(b=>b.skill=renSkill(b.skill));
+  (state.log||[]).forEach(e=>{ if(e.skill) e.skill=renSkill(e.skill); });
+  // skill rubric notes
+  if(!state.skillNotes) state.skillNotes=defaultSkillNotes();
+  else { const dn=defaultSkillNotes(); Object.keys(state.skillNotes).forEach(k=>{ const nk=renSkill(k); if(nk!==k){ state.skillNotes[nk]=state.skillNotes[k]; delete state.skillNotes[k]; } }); SKILLS.forEach(s=>{ if(!state.skillNotes[s]) state.skillNotes[s]=dn[s]||[]; }); }
+  // ensure skill shape
+  SKILLS.forEach(s=>{ if(!state.skills[s]) state.skills[s]={level:1,exp:0}; });
+}
+
+/* ---------- backup / restore (manual cross-device sync) ---------- */
+function exportData(){
+  try{
+    const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(state.appName||'foxglove').toLowerCase()+'-backup-'+today()+'.json'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    toast('Backup downloaded');
+  }catch(e){ toast('Could not export'); }
+}
+function importData(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json,.json';
+  inp.onchange=()=>{
+    const f=inp.files&&inp.files[0]; if(!f) return;
+    const r=new FileReader();
+    r.onload=()=>{
+      try{
+        const obj=JSON.parse(r.result);
+        if(!obj || typeof obj!=='object' || !obj.character) throw 0;
+        state=obj; migrateState(); persist(); closeModal(); renderAll(); toast('Backup restored');
+      }catch(e){ toast('That file couldn’t be read as a backup'); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+async function startApp(){
+  const loaded=await loadState();
+  state = loaded || defaultState();
+  migrateState();
+  dailyReset();
+  await persist();
+  const brand=$('#brandName');
+  brand.textContent=state.appName;
+  document.title=state.appName;
+  brand.onblur=()=>{ state.appName=brand.textContent.trim()||'Foxglove'; brand.textContent=state.appName; document.title=state.appName; persist(); };
+  brand.onkeydown=e=>{ if(e.key==='Enter'){e.preventDefault();brand.blur();} };
+  $('#todayDate').textContent=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase();
+  initSearch();
+  renderAll();
+}
+function showLogin(){
+  const scr=$('#authScreen'); scr.classList.add('show');
+  const email=$('#authEmail'), pass=$('#authPass'), msg=$('#authMsg');
+  const finish=async()=>{ scr.classList.remove('show'); await startApp(); };
+  $('#authSignin').onclick=async()=>{
+    msg.textContent='';
+    const {data,error}=await sb.auth.signInWithPassword({email:email.value.trim(),password:pass.value});
+    if(error){ msg.textContent=error.message; return; }
+    cloudUser=data.user; finish();
+  };
+  $('#authSignup').onclick=async()=>{
+    msg.textContent='';
+    const {data,error}=await sb.auth.signUp({email:email.value.trim(),password:pass.value});
+    if(error){ msg.textContent=error.message; return; }
+    if(data.session){ cloudUser=data.user; finish(); }
+    else { msg.style.color='var(--good)'; msg.textContent='Account made — check your email to confirm, then sign in.'; }
+  };
+  pass.onkeydown=e=>{ if(e.key==='Enter') $('#authSignin').click(); };
+}
+async function signOut(){
+  if(CLOUD && sb){ try{ await sb.auth.signOut(); }catch(e){} }
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  location.reload();
+}
+(async function init(){
+  if(CLOUD){
+    try{
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session){ showLogin(); return; }
+      cloudUser=session.user;
+    }catch(e){ showLogin(); return; }
+  }
+  startApp();
+})();
+</script>
+</body>
+</html>
